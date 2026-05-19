@@ -1,33 +1,83 @@
-export interface NavItem {
-  id: string;
-  label: string;
-  icon?: string;
-  badge?: string;
-  children?: NavItem[];
-}
+// Mirrors Backend's /api/dashboard, /api/notifications, /api/activities, /api/contacts
+// response shapes. Hand-maintained — kept in sync with Backend Mongoose models.
 
-export interface StatCardProps {
+export interface KpiMetric {
+  key: string;
   title: string;
   value: string;
   change: string;
-  trend: 'up' | 'down';
-  bgColor: string;
+  positive: boolean;
+  bgKey: string;
 }
 
-export interface ActivityItem {
-  id: string;
-  user: {
-    name: string;
-    avatar: string;
-  };
-  action: string;
-  time: string;
+export interface ChartSeriesItem {
+  name: string;
+  data: number[];
+  color: string;
+  dashed: boolean;
 }
 
-export interface NotificationItem {
+export interface UserChartData {
+  xAxis: string[];
+  series: ChartSeriesItem[];
+}
+
+export interface TrafficWebsiteRow {
+  name: string;
+  value: number;
+  active: boolean;
+}
+
+export interface TrafficDeviceRow {
+  label: string;
+  value: number;
+  color: string;
+}
+
+export interface TrafficLocationRow {
+  country: string;
+  percentage: number;
+  color: string;
+}
+
+export interface TrafficMarketingRow {
+  month: string;
+  value: number;
+  color: string;
+}
+
+export interface DashboardOverview {
+  kpis: KpiMetric[];
+  userChart: UserChartData;
+  trafficByWebsite: TrafficWebsiteRow[];
+  trafficByDevice: TrafficDeviceRow[];
+  trafficByLocation: TrafficLocationRow[];
+  marketingMonthly: TrafficMarketingRow[];
+}
+
+export type NotificationAudience = 'admin' | 'sales' | 'all';
+
+export interface NotificationDoc {
   id: string;
-  icon: React.ReactNode;
+  kind: string;
   message: string;
-  time: string;
-  bgColor: string;
+  audience: NotificationAudience;
+  createdAt: string;
+}
+
+export interface ActivityDoc {
+  id: string;
+  actorName: string;
+  actorEmail: string;
+  actorRole: 'admin' | 'sales' | null;
+  action: string;
+  createdAt: string;
+}
+
+export interface ContactDoc {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+  linkedUserRole: 'admin' | 'sales' | null;
 }
