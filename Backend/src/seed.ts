@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { connectDB, disconnectDB } from './config/db.js';
-import { User } from './models/User.js';
+import { User, type Role, type UserDoc } from './models/User.js';
 import {
   Lead,
   LEAD_STATUSES,
@@ -41,35 +41,62 @@ function pick<T>(arr: readonly T[]): T {
   return v;
 }
 
+interface UserSpec {
+  name: string;
+  email: string;
+  password: string;
+  role: Role;
+}
+
+// Find-or-create. Keeps the seed idempotent across partial failures —
+// if a prior run created some users but crashed before completing, re-running
+// the seed fills in the missing ones rather than skipping entirely.
+async function ensureUser(spec: UserSpec): Promise<{ user: UserDoc; created: boolean }> {
+  const existing = await User.findOne({ email: spec.email });
+  if (existing) return { user: existing, created: false };
+  const passwordHash = await User.hashPassword(spec.password);
+  const user = await User.create({
+    name: spec.name,
+    email: spec.email,
+    passwordHash,
+    role: spec.role,
+  });
+  return { user, created: true };
+}
+
 async function seedUsersAndLeads(): Promise<void> {
-  const userCount = await User.countDocuments();
-  if (userCount > 0) {
-    logger.info({ userCount }, 'users already exist — user/lead seed skipped');
-    return;
-  }
-
-  const adminHash = await User.hashPassword('admin123!');
-  const salesHash = await User.hashPassword('sales123!');
-  const aadityaHash = await User.hashPassword('aaditya123!');
-
-  const admin = await User.create({
+  const adminResult = await ensureUser({
     name: 'Admin User',
     email: 'admin@leadsrack.local',
-    passwordHash: adminHash,
+    password: 'admin123!',
     role: 'admin',
   });
-  const sales = await User.create({
+  const salesResult = await ensureUser({
     name: 'Sales User',
     email: 'sales@leadsrack.local',
-    passwordHash: salesHash,
+    password: 'sales123!',
     role: 'sales',
   });
-  const aaditya = await User.create({
+  const aadityaResult = await ensureUser({
     name: 'Aaditya Gunjal',
     email: 'aadigunjal0975@gmail.com',
-    passwordHash: aadityaHash,
+    password: 'aaditya123!',
     role: 'sales',
   });
+
+  const admin = adminResult.user;
+  const sales = salesResult.user;
+  const aaditya = aadityaResult.user;
+  const usersCreated = [adminResult, salesResult, aadityaResult].filter((r) => r.created).length;
+
+  const leadCount = await Lead.countDocuments();
+  if (leadCount > 0) {
+    logger.info(
+      { usersCreated, existingLeads: leadCount },
+      'users ensured; leads already exist (skipped lead seed)',
+    );
+    return;
+  }
 
   // Distribute 25 leads across all three users so the Team page has variety.
   const leads = Array.from({ length: 25 }, () => {
@@ -91,6 +118,7 @@ async function seedUsersAndLeads(): Promise<void> {
 
   logger.info(
     {
+      usersCreated,
       admin: admin.email,
       sales: sales.email,
       aaditya: aaditya.email,
