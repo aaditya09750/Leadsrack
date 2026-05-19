@@ -1,10 +1,12 @@
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
+import { AdminRoute } from './AdminRoute';
 import { AppShellLayout } from './AppShellLayout';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { LeadsPage } from '../features/leads/LeadsPage';
+import { TeamPage } from '../features/team/TeamPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 
 export const AppRoutes = () => (
@@ -15,6 +17,9 @@ export const AppRoutes = () => (
       <Route element={<AppShellLayout />}>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/leads" element={<LeadsPage />} />
+        <Route element={<AdminRoute />}>
+          <Route path="/team" element={<TeamPage />} />
+        </Route>
       </Route>
     </Route>
     <Route path="*" element={<NotFoundPage />} />
