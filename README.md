@@ -32,6 +32,16 @@ Most generic admin templates skip the actual sales workflow: ownership, role-sco
 | API health (Render) | <https://leadsrack.onrender.com/api/health> |
 | Source              | <https://github.com/aaditya09750/Leadsrack> |
 
+### Try it — seeded credentials
+
+Use any of these to log in at <https://leadsrack.vercel.app/login>:
+
+| Role  | Email                      | Password      | What you'll see                                          |
+| ----- | -------------------------- | ------------- | -------------------------------------------------------- |
+| admin | `admin@leadsrack.local`    | `admin123!`   | All 25 leads, the **Team** page, owner-filter dropdown   |
+| sales | `sales@leadsrack.local`    | `sales123!`   | Only own leads (~11), no Team page, no owner filter      |
+| sales | `aadigunjal0975@gmail.com` | `aaditya123!` | Only own leads (~11), same scope as the other sales user |
+
 > **Cold-start note** — Render's free tier sleeps after 15 minutes of inactivity. First request after sleep takes ~30 s while the dyno wakes; subsequent calls are instant. If the Vercel page hangs on the login call, the API dyno is waking up — retry after 30 s.
 
 ## Core features
