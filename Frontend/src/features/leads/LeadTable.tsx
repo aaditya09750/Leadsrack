@@ -1,6 +1,7 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import type { Lead, LeadStatus } from '../../types/api';
+import { LEAD_STATUS_STYLES } from './leadStatusStyles';
+import type { Lead } from '../../types/api';
 
 interface LeadTableProps {
   leads: Lead[];
@@ -8,22 +9,15 @@ interface LeadTableProps {
   onDelete: (lead: Lead) => void;
 }
 
-const STATUS_STYLES: Record<LeadStatus, string> = {
-  New: 'bg-accent-sky/20 text-accent-sky',
-  Contacted: 'bg-accent-purple/20 text-accent-purple',
-  Qualified: 'bg-accent-green/20 text-accent-green',
-  Lost: 'bg-white/10 text-secondary',
-};
-
 function formatDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' });
 }
 
 export const LeadTable = ({ leads, onEdit, onDelete }: LeadTableProps) => (
-  <div className="mx-7 rounded-xl border border-border bg-white/5 overflow-hidden">
+  <div className="mx-7 rounded-xl border border-border bg-surface overflow-hidden">
     <table className="w-full text-left text-xs">
-      <thead className="bg-white/[0.03]">
+      <thead className="bg-primary/[0.03]">
         <tr className="text-secondary uppercase tracking-wider">
           <th className="px-4 py-3 font-medium">Name</th>
           <th className="px-4 py-3 font-medium">Email</th>
@@ -35,14 +29,14 @@ export const LeadTable = ({ leads, onEdit, onDelete }: LeadTableProps) => (
       </thead>
       <tbody>
         {leads.map((lead) => (
-          <tr key={lead.id} className="border-t border-border hover:bg-white/[0.02] transition-colors">
+          <tr key={lead.id} className="border-t border-border hover:bg-primary/[0.02] transition-colors">
             <td className="px-4 py-3 text-primary font-medium">{lead.name}</td>
             <td className="px-4 py-3 text-secondary">{lead.email}</td>
             <td className="px-4 py-3">
               <span
                 className={cn(
                   'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium',
-                  STATUS_STYLES[lead.status],
+                  LEAD_STATUS_STYLES[lead.status],
                 )}
               >
                 {lead.status}
@@ -55,7 +49,7 @@ export const LeadTable = ({ leads, onEdit, onDelete }: LeadTableProps) => (
                 <button
                   type="button"
                   onClick={() => onEdit(lead)}
-                  className="p-1.5 rounded-lg text-secondary hover:bg-white/5 hover:text-primary transition-colors"
+                  className="p-1.5 rounded-lg text-secondary hover:bg-primary/5 hover:text-primary transition-colors"
                   aria-label={`Edit ${lead.name}`}
                 >
                   <Pencil size={14} />
