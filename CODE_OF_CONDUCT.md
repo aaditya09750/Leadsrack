@@ -11,7 +11,7 @@ regardless of background, identity, or experience level.
 ## Enforcement
 
 Instances of unacceptable behavior may be reported to the project maintainers at
-**team@metaminds.studio**. All complaints will be reviewed and investigated promptly and fairly.
+**aadigunjal0975@gmail.com**. All complaints will be reviewed and investigated promptly and fairly.
 Maintainers are obligated to respect the privacy and security of the reporter.
 
 For the full Enforcement Guidelines (correction → warning → temporary ban → permanent ban),

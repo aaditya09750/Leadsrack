@@ -13,7 +13,7 @@ This project is pre-1.0. Only the `main` branch receives security fixes.
 
 If you discover a security vulnerability, please **do not** open a public GitHub issue.
 
-Email the maintainers at **team@metaminds.studio** with:
+Email the maintainers at **aadigunjal0975@gmail.com** with:
 
 - A description of the vulnerability and its impact.
 - Steps to reproduce, including affected versions and environment.
