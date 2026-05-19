@@ -1,6 +1,6 @@
 # API reference
 
-Base URL — `http://localhost:4000/api` (local) or `<host>/api` when behind the nginx proxy.
+Base URL — `http://localhost:4000/api` (local), `<render-url>/api` (production), or `<host>/api` when behind the nginx proxy.
 
 All requests and responses are JSON. Authenticated endpoints require an `Authorization: Bearer <jwt>` header.
 
@@ -13,19 +13,49 @@ All requests and responses are JSON. Authenticated endpoints require an `Authori
 
 Source of truth for every request shape: Zod schemas in [`Backend/src/schemas/`](../Backend/src/schemas/).
 
+## Endpoint index
+
+| Method   | Path                  | Auth                 | Section                                |
+| -------- | --------------------- | -------------------- | -------------------------------------- |
+| `GET`    | `/health`             | Public               | [Health](#get-apihealth)               |
+| `POST`   | `/auth/register`      | Public               | [Auth](#post-apiauthregister)          |
+| `POST`   | `/auth/login`         | Public               | [Auth](#post-apiauthlogin)             |
+| `GET`    | `/auth/me`            | Bearer               | [Auth](#get-apiauthme)                 |
+| `GET`    | `/leads`              | Bearer               | [Leads](#get-apileads)                 |
+| `POST`   | `/leads`              | Bearer               | [Leads](#post-apileads)                |
+| `GET`    | `/leads/:id`          | Bearer (owner/admin) | [Leads](#get-apileadsid)               |
+| `PATCH`  | `/leads/:id`          | Bearer (owner/admin) | [Leads](#patch-apileadsid)             |
+| `DELETE` | `/leads/:id`          | Bearer (owner/admin) | [Leads](#delete-apileadsid)            |
+| `GET`    | `/leads/export.csv`   | Bearer               | [Leads](#get-apileadsexportcsv)        |
+| `GET`    | `/team`               | Bearer + admin       | [Team](#get-apiteam)                   |
+| `GET`    | `/dashboard/overview` | Bearer               | [Dashboard](#get-apidashboardoverview) |
+| `GET`    | `/activities`         | Bearer               | [Activities](#get-apiactivities)       |
+| `GET`    | `/contacts`           | Bearer               | [Contacts](#get-apicontacts)           |
+| `GET`    | `/notifications`      | Bearer               | [Notifications](#get-apinotifications) |
+
 ---
 
 ## `GET /api/health`
 
-Liveness probe. Public.
+DB-aware liveness probe. Public.
 
 ```bash
 curl http://localhost:4000/api/health
 ```
 
+**Response 200** (Mongo connected):
+
 ```json
-{ "status": "ok", "service": "leadsrack-api", "uptime": 12.34 }
+{ "status": "ok", "service": "leadsrack-api", "uptime": 12.34, "db": "connected" }
 ```
+
+**Response 503** (Mongo disconnected):
+
+```json
+{ "status": "degraded", "service": "leadsrack-api", "uptime": 0.7, "db": "disconnected" }
+```
+
+Render uses this as the readiness check (see `healthCheckPath: /api/health` in `render.yaml`).
 
 ---
 
@@ -38,7 +68,12 @@ Schema: [`registerSchema`](../Backend/src/schemas/auth.ts).
 **Request**
 
 ```json
-{ "name": "Aaditya Gunjal", "email": "you@example.com", "password": "at-least-8-chars", "role": "sales" }
+{
+  "name": "Aaditya Gunjal",
+  "email": "you@example.com",
+  "password": "at-least-8-chars",
+  "role": "sales"
+}
 ```
 
 `role` is optional and defaults to `sales`. Allowed: `"admin" | "sales"`.
@@ -48,7 +83,14 @@ Schema: [`registerSchema`](../Backend/src/schemas/auth.ts).
 ```json
 {
   "data": {
-    "user": { "id": "65...", "name": "Aaditya Gunjal", "email": "you@example.com", "role": "sales", "createdAt": "...", "updatedAt": "..." },
+    "user": {
+      "id": "65...",
+      "name": "Aaditya Gunjal",
+      "email": "you@example.com",
+      "role": "sales",
+      "createdAt": "...",
+      "updatedAt": "..."
+    },
     "token": "eyJhbGciOi..."
   }
 }
@@ -104,7 +146,18 @@ curl http://localhost:4000/api/auth/me -H "Authorization: Bearer $JWT"
 ```
 
 ```json
-{ "data": { "user": { "id": "...", "name": "...", "email": "...", "role": "sales", "createdAt": "...", "updatedAt": "..." } } }
+{
+  "data": {
+    "user": {
+      "id": "...",
+      "name": "...",
+      "email": "...",
+      "role": "sales",
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  }
+}
 ```
 
 **Errors**: `401 UNAUTHORIZED`.
@@ -115,18 +168,19 @@ curl http://localhost:4000/api/auth/me -H "Authorization: Bearer $JWT"
 
 List leads visible to the caller. Bearer required.
 
-- Admin sees all leads.
-- Sales sees only leads where `createdBy === user.id`.
+- Admin sees all leads (and can filter by `?owner=`).
+- Sales sees only leads where `createdBy === user.id`. `?owner=` is silently ignored for sales.
 
 **Query parameters** (all optional). Schema: [`listLeadsQuerySchema`](../Backend/src/schemas/lead.ts).
 
-| Param | Type | Notes |
-| --- | --- | --- |
-| `status` | `New \| Contacted \| Qualified \| Lost` | Exact match |
-| `source` | `Website \| Instagram \| Referral` | Exact match |
-| `search` | `string` (1–100 chars) | Case-insensitive partial match against `name` OR `email` |
-| `sort` | `latest \| oldest` | Default `latest` (`createdAt` desc) |
-| `page` | `integer >= 1` | Default 1; `limit` is fixed at 10 |
+| Param    | Type                                    | Notes                                                    |
+| -------- | --------------------------------------- | -------------------------------------------------------- |
+| `status` | `New \| Contacted \| Qualified \| Lost` | Exact match                                              |
+| `source` | `Website \| Instagram \| Referral`      | Exact match                                              |
+| `search` | `string` (1–100 chars)                  | Case-insensitive partial match against `name` OR `email` |
+| `sort`   | `latest \| oldest`                      | Default `latest` (`createdAt` desc)                      |
+| `page`   | `integer >= 1`                          | Default 1; `limit` is fixed at 10                        |
+| `owner`  | `email` (admin only)                    | Resolve to `createdBy = User.findOne({ email })._id`     |
 
 Filters compose (logical AND). Example: `?status=Qualified&source=Instagram&search=Rahul&sort=latest&page=1`.
 
@@ -227,11 +281,11 @@ curl -X DELETE "http://localhost:4000/api/leads/$LEAD_ID" -H "Authorization: Bea
 
 ## `GET /api/leads/export.csv`
 
-Stream filtered leads as CSV. Bearer required. Accepts the same query parameters as `GET /api/leads`. Same RBAC scope (sales sees own; admin sees all).
+Export filtered leads as CSV. Bearer required. Accepts the same query parameters as `GET /api/leads`. Same RBAC scope (sales sees own; admin sees all; admin can use `?owner=`).
 
 Response headers:
 
-```
+```text
 Content-Type: text/csv; charset=utf-8
 Content-Disposition: attachment; filename="leads-<timestamp>.csv"
 ```
@@ -244,4 +298,216 @@ curl "http://localhost:4000/api/leads/export.csv?status=Qualified&source=Instagr
   -o leads.csv
 ```
 
-The implementation uses `mongoose.find().lean().cursor()` piped through `@json2csv/node` `Transform` into the response — memory-flat regardless of result-set size.
+The implementation uses `Lead.find().lean()` piped through `@json2csv/node` AsyncParser. For the current pagination-capped scale (a few thousand rows max in practice), in-memory serialization is simpler and more reliable than a cursor stream.
+
+---
+
+## `GET /api/team`
+
+Admin-only. Returns the sales team with per-user lead aggregates plus a summary block.
+
+```bash
+curl http://localhost:4000/api/team -H "Authorization: Bearer $ADMIN_JWT"
+```
+
+**Response 200**
+
+```json
+{
+  "data": {
+    "summary": {
+      "totalMembers": 3,
+      "adminCount": 1,
+      "salesCount": 2,
+      "totalLeads": 25,
+      "topPerformer": {
+        "id": "65...",
+        "name": "Sales User",
+        "email": "sales@leadsrack.local",
+        "totalLeads": 12
+      }
+    },
+    "members": [
+      {
+        "id": "65...",
+        "name": "Sales User",
+        "email": "sales@leadsrack.local",
+        "role": "sales",
+        "avatar": "https://i.pravatar.cc/150?u=sales%40leadsrack.local",
+        "leadCounts": {
+          "total": 12,
+          "byStatus": { "New": 3, "Contacted": 4, "Qualified": 3, "Lost": 2 }
+        }
+      }
+    ]
+  }
+}
+```
+
+**Errors**: `401 UNAUTHORIZED`, `403 FORBIDDEN` (sales role).
+
+Implementation: `User.find()` joined with `Lead.aggregate($group)` by `createdBy` and `$cond` per status. Sorted by `total` descending; `topPerformer` is null when no leads exist.
+
+---
+
+## `GET /api/dashboard/overview`
+
+Single round-trip read returning every dashboard widget's data. Bearer required.
+
+```bash
+curl http://localhost:4000/api/dashboard/overview -H "Authorization: Bearer $JWT"
+```
+
+**Response 200** (abridged)
+
+```json
+{
+  "data": {
+    "kpis": [
+      {
+        "key": "views",
+        "title": "Views",
+        "value": "721K",
+        "change": "+11.01%",
+        "positive": true,
+        "bgKey": "views"
+      },
+      {
+        "key": "visits",
+        "title": "Visits",
+        "value": "367K",
+        "change": "-0.03%",
+        "positive": false,
+        "bgKey": "visits"
+      }
+    ],
+    "userChart": {
+      "xAxis": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+      "series": [
+        {
+          "name": "Current Week",
+          "data": [12, 18, 14, 22, 16, 24, 20],
+          "color": "#C6C7F8",
+          "dashed": false
+        },
+        {
+          "name": "Previous Week",
+          "data": [8, 12, 10, 15, 12, 18, 14],
+          "color": "#A8C5DA",
+          "dashed": true
+        }
+      ]
+    },
+    "trafficByWebsite": [{ "name": "Google", "value": 80, "active": false }],
+    "trafficByDevice": [{ "label": "Linux", "value": 40, "color": "indigo" }],
+    "trafficByLocation": [{ "country": "United States", "percentage": 38.6, "color": "purple" }],
+    "marketingMonthly": [{ "month": "Jan", "value": 40, "color": "indigo" }]
+  }
+}
+```
+
+Data is read from the `dashboardkpis`, `chartseries`, and `trafficaggregates` collections (all populated by `pnpm seed`). The endpoint fans three reads in parallel via `Promise.all`.
+
+**Errors**: `401 UNAUTHORIZED`.
+
+---
+
+## `GET /api/activities`
+
+Recent activity feed. Bearer required. Returns the 20 most recent activities populating actor name/email/role.
+
+```bash
+curl http://localhost:4000/api/activities -H "Authorization: Bearer $JWT"
+```
+
+**Response 200**
+
+```json
+{
+  "data": [
+    {
+      "id": "65...",
+      "actorName": "Admin User",
+      "actorEmail": "admin@leadsrack.local",
+      "actorRole": "admin",
+      "action": "Released filter improvements to all users.",
+      "createdAt": "2026-05-19T14:30:00.000Z"
+    }
+  ]
+}
+```
+
+Powered by `Activity.find().populate('actor', 'name email role').sort({ createdAt: -1 }).limit(20)`.
+
+---
+
+## `GET /api/contacts`
+
+Contacts list. Bearer required. Alphabetical by `name`.
+
+```bash
+curl http://localhost:4000/api/contacts -H "Authorization: Bearer $JWT"
+```
+
+**Response 200**
+
+```json
+{
+  "data": [
+    {
+      "id": "65...",
+      "name": "Sales User",
+      "email": "sales@leadsrack.local",
+      "avatar": "https://i.pravatar.cc/150?u=sales",
+      "linkedUserRole": "sales"
+    },
+    {
+      "id": "65...",
+      "name": "Natali Craig",
+      "email": "natali.craig@example.com",
+      "avatar": "https://i.pravatar.cc/150?u=natali",
+      "linkedUserRole": null
+    }
+  ]
+}
+```
+
+`linkedUserRole` is `null` for external contacts (no linked system user). `email` falls back to the linked user's email when the contact entry doesn't have one of its own.
+
+---
+
+## `GET /api/notifications`
+
+Role-scoped notifications. Bearer required.
+
+- Admin: sees all audiences (`admin | sales | all`).
+- Sales: sees `sales` + `all` (no admin-only entries).
+
+```bash
+curl http://localhost:4000/api/notifications -H "Authorization: Bearer $JWT"
+```
+
+**Response 200**
+
+```json
+{
+  "data": [
+    {
+      "id": "65...",
+      "kind": "bug",
+      "message": "Lead duplication detected on import.",
+      "audience": "admin",
+      "createdAt": "2026-05-19T14:28:00.000Z"
+    },
+    {
+      "id": "65...",
+      "kind": "lead-status",
+      "message": "3 leads moved to Qualified this morning.",
+      "audience": "all",
+      "createdAt": "2026-05-19T11:30:00.000Z"
+    }
+  ]
+}
+```
+
+Sorted by `createdAt` descending. The `kind` field maps to an icon + color in the right-drawer UI (`bug`, `user`, `lead-status`, `subscribe`; unknown kinds get a fallback).
