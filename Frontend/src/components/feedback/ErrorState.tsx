@@ -17,7 +17,7 @@ export const ErrorState = ({
   <div
     role="alert"
     className={cn(
-      'flex flex-col items-center justify-center text-center py-10 px-6 rounded-xl border border-border bg-white/5',
+      'flex flex-col items-center justify-center text-center py-10 px-6 rounded-xl border border-border bg-surface',
       className,
     )}
   >
