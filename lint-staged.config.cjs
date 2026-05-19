@@ -1,7 +1,12 @@
 const path = require('path');
 
-const toRel = (cwd, files) =>
-  files.map((f) => path.posix.relative(cwd, f.replace(/\\/g, '/'))).join(' ');
+// lint-staged passes absolute paths. On Windows, `path.posix.relative('Backend', 'C:/.../file')`
+// produces `../C:/...` because posix can't resolve drive letters. Resolve cwd to an absolute
+// posix path first so the relative computation works cross-platform.
+const toRel = (subdir, files) => {
+  const cwdAbs = path.posix.join(process.cwd().replace(/\\/g, '/'), subdir);
+  return files.map((f) => path.posix.relative(cwdAbs, f.replace(/\\/g, '/'))).join(' ');
+};
 
 module.exports = {
   'Frontend/**/*.{ts,tsx,js,jsx}': (files) => {
