@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD013 MD033 -->
 
-# Leadsrack
+# Leadsrack - Leads Management System
 
 Lead management dashboard for sales teams with role-based pipelines, server-side filtering, debounced search, CSV export, and a production-hardened API.
 
@@ -25,13 +25,14 @@ Most generic admin templates skip the actual sales workflow: ownership, role-sco
 
 ## Live demo
 
-| Item                | Link                                                             |
-| ------------------- | ---------------------------------------------------------------- |
-| Frontend (Vercel)   | <!-- TODO: paste Vercel URL after first deploy -->               |
-| API health (Render) | <!-- TODO: paste Render URL + /api/health after first deploy --> |
-| Source              | <https://github.com/aaditya09750/Leadsrack>                      |
+| Item                | Link                                        |
+| ------------------- | ------------------------------------------- |
+| Frontend (Vercel)   | <https://leadsrack.vercel.app>              |
+| API root (Render)   | <https://leadsrack.onrender.com>            |
+| API health (Render) | <https://leadsrack.onrender.com/api/health> |
+| Source              | <https://github.com/aaditya09750/Leadsrack> |
 
-> **Cold-start note** — Render's free tier sleeps after 15 minutes of inactivity. First request after sleep takes ~30 s while the dyno wakes; subsequent calls are instant.
+> **Cold-start note** — Render's free tier sleeps after 15 minutes of inactivity. First request after sleep takes ~30 s while the dyno wakes; subsequent calls are instant. If the Vercel page hangs on the login call, the API dyno is waking up — retry after 30 s.
 
 ## Core features
 
