@@ -1,0 +1,11 @@
+set -e
+
+if [ -f Frontend/package.json ] && [ -d Frontend/node_modules ]; then
+  echo "→ Frontend: lint, typecheck, build"
+  (cd Frontend && pnpm lint && pnpm typecheck && pnpm build)
+fi
+
+if [ -f Backend/package.json ] && [ -d Backend/node_modules ]; then
+  echo "→ Backend: lint, typecheck, build"
+  (cd Backend && pnpm lint && pnpm typecheck && pnpm build)
+fi

@@ -1,0 +1,14 @@
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+
+pnpm-lock.yaml -diff linguist-generated
+package-lock.json -diff linguist-generated
+yarn.lock -diff linguist-generated
