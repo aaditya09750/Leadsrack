@@ -14,6 +14,7 @@ function toParams(query: LeadsQuery): Record<string, string | number> {
   if (query.search) params.search = query.search;
   if (query.sort) params.sort = query.sort;
   if (query.page) params.page = query.page;
+  if (query.owner) params.owner = query.owner;
   return params;
 }
 

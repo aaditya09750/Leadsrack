@@ -1,4 +1,5 @@
 import { Search, Download, Plus } from 'lucide-react';
+import { Select, type SelectOption } from '../../components/ui/Select';
 import {
   LEAD_STATUSES,
   LEAD_SOURCES,
@@ -6,6 +7,11 @@ import {
   type LeadSource,
   type SortOrder,
 } from '../../types/api';
+
+export interface MemberOption {
+  email: string;
+  name: string;
+}
 
 interface LeadFiltersProps {
   search: string;
@@ -16,13 +22,28 @@ interface LeadFiltersProps {
   onSourceChange: (value: LeadSource | '') => void;
   sort: SortOrder;
   onSortChange: (value: SortOrder) => void;
+  owner: string;
+  onOwnerChange: (email: string) => void;
+  members?: MemberOption[];
   onNewLead: () => void;
   onExport: () => void;
   exporting: boolean;
 }
 
-const selectClass =
-  'px-3 py-1.5 rounded-lg bg-white/5 border border-border text-primary text-xs focus:outline-none focus:ring-1 focus:ring-accent-brand';
+const STATUS_OPTIONS: SelectOption[] = [
+  { value: '', label: 'All statuses' },
+  ...LEAD_STATUSES.map((s) => ({ value: s, label: s })),
+];
+
+const SOURCE_OPTIONS: SelectOption[] = [
+  { value: '', label: 'All sources' },
+  ...LEAD_SOURCES.map((s) => ({ value: s, label: s })),
+];
+
+const SORT_OPTIONS: SelectOption[] = [
+  { value: 'latest', label: 'Latest first' },
+  { value: 'oldest', label: 'Oldest first' },
+];
 
 export const LeadFilters = ({
   search,
@@ -33,81 +54,93 @@ export const LeadFilters = ({
   onSourceChange,
   sort,
   onSortChange,
+  owner,
+  onOwnerChange,
+  members,
   onNewLead,
   onExport,
   exporting,
-}: LeadFiltersProps) => (
-  <div className="flex flex-wrap items-center gap-3 px-7 mb-5">
-    <div className="relative flex-1 min-w-[220px]">
-      <Search
-        size={14}
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"
+}: LeadFiltersProps) => {
+  const memberOptions: SelectOption[] | null = members
+    ? [
+        { value: '', label: 'All members' },
+        ...members.map((m) => ({ value: m.email, label: m.name })),
+      ]
+    : null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 px-7 mb-5">
+      <div className="relative flex-1 min-w-[240px]">
+        <Search
+          size={16}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"
+        />
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Search name or email"
+          className="w-full pl-10 pr-3 py-2 rounded-lg bg-primary/5 border border-border text-primary text-sm placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent-brand"
+        />
+      </div>
+
+      <Select
+        value={status}
+        onChange={(v) => onStatusChange(v as LeadStatus | '')}
+        options={STATUS_OPTIONS}
+        size="md"
+        aria-label="Filter by status"
+        className="w-[160px]"
       />
-      <input
-        type="search"
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        placeholder="Search name or email"
-        className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white/5 border border-border text-primary text-xs placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent-brand"
+
+      <Select
+        value={source}
+        onChange={(v) => onSourceChange(v as LeadSource | '')}
+        options={SOURCE_OPTIONS}
+        size="md"
+        aria-label="Filter by source"
+        className="w-[160px]"
       />
+
+      {memberOptions ? (
+        <Select
+          value={owner}
+          onChange={onOwnerChange}
+          options={memberOptions}
+          size="md"
+          aria-label="Filter by team member"
+          className="w-[180px]"
+        />
+      ) : null}
+
+      <Select
+        value={sort}
+        onChange={(v) => onSortChange(v as SortOrder)}
+        options={SORT_OPTIONS}
+        size="md"
+        aria-label="Sort order"
+        className="w-[160px]"
+      />
+
+      <div className="flex items-center gap-2 ml-auto">
+        <button
+          type="button"
+          onClick={onExport}
+          disabled={exporting}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-primary text-sm hover:bg-primary/5 transition-colors disabled:opacity-50"
+        >
+          <Download size={16} />
+          {exporting ? 'Exporting…' : 'Export CSV'}
+        </button>
+        <button
+          type="button"
+          onClick={onNewLead}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent-brand text-white text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          <Plus size={16} />
+          New lead
+        </button>
+      </div>
     </div>
-
-    <select
-      value={status}
-      onChange={(e) => onStatusChange(e.target.value as LeadStatus | '')}
-      className={selectClass}
-      aria-label="Filter by status"
-    >
-      <option value="">All statuses</option>
-      {LEAD_STATUSES.map((s) => (
-        <option key={s} value={s}>
-          {s}
-        </option>
-      ))}
-    </select>
-
-    <select
-      value={source}
-      onChange={(e) => onSourceChange(e.target.value as LeadSource | '')}
-      className={selectClass}
-      aria-label="Filter by source"
-    >
-      <option value="">All sources</option>
-      {LEAD_SOURCES.map((s) => (
-        <option key={s} value={s}>
-          {s}
-        </option>
-      ))}
-    </select>
-
-    <select
-      value={sort}
-      onChange={(e) => onSortChange(e.target.value as SortOrder)}
-      className={selectClass}
-      aria-label="Sort order"
-    >
-      <option value="latest">Latest first</option>
-      <option value="oldest">Oldest first</option>
-    </select>
-
-    <div className="flex items-center gap-2 ml-auto">
-      <button
-        type="button"
-        onClick={onExport}
-        disabled={exporting}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-primary text-xs hover:bg-white/5 transition-colors disabled:opacity-50"
-      >
-        <Download size={14} />
-        {exporting ? 'Exporting…' : 'Export CSV'}
-      </button>
-      <button
-        type="button"
-        onClick={onNewLead}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-brand text-white text-xs font-medium hover:opacity-90 transition-opacity"
-      >
-        <Plus size={14} />
-        New lead
-      </button>
-    </div>
-  </div>
-);
+  );
+};

@@ -56,6 +56,7 @@ export interface LeadsQuery {
   search?: string;
   sort?: SortOrder;
   page?: number;
+  owner?: string;
 }
 
 export interface AuthResponse {
