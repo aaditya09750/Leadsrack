@@ -50,6 +50,7 @@ async function seedUsersAndLeads(): Promise<void> {
 
   const adminHash = await User.hashPassword('admin123!');
   const salesHash = await User.hashPassword('sales123!');
+  const aadityaHash = await User.hashPassword('aaditya123!');
 
   const admin = await User.create({
     name: 'Admin User',
@@ -63,13 +64,21 @@ async function seedUsersAndLeads(): Promise<void> {
     passwordHash: salesHash,
     role: 'sales',
   });
+  const aaditya = await User.create({
+    name: 'Aaditya Gunjal',
+    email: 'aadigunjal0975@gmail.com',
+    passwordHash: aadityaHash,
+    role: 'sales',
+  });
 
+  // Distribute 25 leads across all three users so the Team page has variety.
   const leads = Array.from({ length: 25 }, () => {
     const first = pick(FIRST_NAMES);
     const last = pick(LAST_NAMES);
     const status: LeadStatus = pick(LEAD_STATUSES);
     const source: LeadSource = pick(LEAD_SOURCES);
-    const createdBy = Math.random() < 0.7 ? sales._id : admin._id;
+    const r = Math.random();
+    const createdBy = r < 0.4 ? sales._id : r < 0.75 ? aaditya._id : admin._id;
     return {
       name: `${first} ${last}`,
       email: `${first}.${last}@example.com`.toLowerCase(),
@@ -84,8 +93,13 @@ async function seedUsersAndLeads(): Promise<void> {
     {
       admin: admin.email,
       sales: sales.email,
+      aaditya: aaditya.email,
       leadsInserted: leads.length,
-      defaultPasswords: { admin: 'admin123!', sales: 'sales123!' },
+      defaultPasswords: {
+        admin: 'admin123!',
+        sales: 'sales123!',
+        aaditya: 'aaditya123!',
+      },
     },
     'users + leads seed complete',
   );
