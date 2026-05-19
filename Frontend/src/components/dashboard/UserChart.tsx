@@ -1,12 +1,18 @@
+import { useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Card } from '../ui/Card';
+import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import { USER_CHART } from '../../data/dashboardData';
 import { useDashboardOverview } from '../../features/dashboard/useDashboard';
 
+const TABS = ['Total Users', 'Total Projects', 'Operating Status'] as const;
+type Tab = (typeof TABS)[number];
+
 export const UserChart = () => {
   const theme = useThemeStore((s) => s.theme);
   const isDark = theme === 'dark';
+  const [activeTab, setActiveTab] = useState<Tab>('Total Users');
 
   const { data } = useDashboardOverview();
   const chart = data?.userChart ?? USER_CHART;
@@ -90,29 +96,38 @@ export const UserChart = () => {
   const legend = chart.series.map((s) => ({ name: s.name, color: s.color }));
 
   return (
-    <Card className="bg-surface h-[340px] flex flex-col">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-6">
-          <button className="text-primary text-sm font-semibold border-b-2 border-primary pb-1">
-            Total Users
-          </button>
-          <button className="text-secondary text-sm hover:text-primary transition-colors pb-1">
-            Total Projects
-          </button>
-          <button className="text-secondary text-sm hover:text-primary transition-colors pb-1">
-            Operating Status
-          </button>
+    <Card className="bg-surface md:h-[340px] flex flex-col">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between xl:gap-4 mb-5 xl:mb-8">
+        <div className="flex items-center gap-5 xl:gap-6 overflow-x-auto scrollbar-hidden -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible">
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  'shrink-0 whitespace-nowrap text-sm pb-1 border-b-2 transition-colors',
+                  isActive
+                    ? 'text-primary font-semibold border-primary'
+                    : 'text-secondary border-transparent hover:text-primary',
+                )}
+              >
+                {tab}
+              </button>
+            );
+          })}
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           {legend.map((l) => (
             <div key={l.name} className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: l.color }} />
-              <span className="text-primary text-[11px]">{l.name}</span>
+              <span className="text-primary text-[11px] whitespace-nowrap">{l.name}</span>
             </div>
           ))}
         </div>
       </div>
-      <div className="flex-1">
+      <div className="h-[220px] md:h-auto md:flex-1">
         <ReactECharts option={option} style={{ height: '100%', width: '100%' }} notMerge />
       </div>
     </Card>

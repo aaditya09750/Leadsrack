@@ -1,4 +1,3 @@
-import { ChevronDown } from 'lucide-react';
 import { StatsGrid } from '../components/dashboard/StatsGrid';
 import { UserChart } from '../components/dashboard/UserChart';
 import { TrafficByWebsite } from '../components/dashboard/TrafficByWebsite';
@@ -9,14 +8,10 @@ import { MarketingMonthly } from '../components/dashboard/MarketingMonthly';
 export const DashboardPage = () => {
   return (
     <>
-      <div className="px-4 md:px-7 pt-5 md:pt-7 pb-4 flex items-center justify-between">
-        <button
-          type="button"
-          className="flex items-center gap-1 text-primary text-sm font-semibold hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors"
-        >
-          Today
-          <ChevronDown size={16} className="text-secondary" />
-        </button>
+      <div className="px-4 md:px-7 pt-5 md:pt-7">
+        <h1 className="font-display text-primary text-lg md:text-2xl font-semibold leading-tight">
+          Leadsrack Smart Leads System
+        </h1>
       </div>
 
       <StatsGrid />

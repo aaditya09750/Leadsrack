@@ -8,7 +8,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Card = ({ children, className, ...props }: CardProps) => {
   return (
     <div 
-      className={cn("rounded-xl p-6 transition-all duration-200", className)} 
+      className={cn("rounded-xl p-4 sm:p-6 transition-all duration-200", className)}
       {...props}
     >
       {children}
