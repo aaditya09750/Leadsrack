@@ -1,9 +1,16 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
-import { LEAD_STATUSES, LEAD_SOURCES, type Lead, type LeadStatus, type LeadSource } from '../../types/api';
+import { Select } from '../../components/ui/Select';
+import {
+  LEAD_STATUSES,
+  LEAD_SOURCES,
+  type Lead,
+  type LeadStatus,
+  type LeadSource,
+} from '../../types/api';
 
 const leadFormSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100),
@@ -22,13 +29,17 @@ interface LeadFormProps {
 }
 
 const inputClass =
-  'w-full px-3 py-2 rounded-lg bg-white/5 border border-border text-primary text-sm placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent-brand';
+  'w-full px-3 py-2 rounded-lg bg-primary/5 border border-border text-primary text-sm placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent-brand';
+
+const STATUS_OPTIONS = LEAD_STATUSES.map((s) => ({ value: s, label: s }));
+const SOURCE_OPTIONS = LEAD_SOURCES.map((s) => ({ value: s, label: s }));
 
 export const LeadForm = ({ initial, submitting, onSubmit, onClose }: LeadFormProps) => {
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<LeadFormValues>({
     resolver: zodResolver(leadFormSchema),
@@ -53,13 +64,13 @@ export const LeadForm = ({ initial, submitting, onSubmit, onClose }: LeadFormPro
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6">
       <div className="w-full max-w-md bg-background border border-border rounded-xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h2 className="text-primary text-sm font-semibold">
+          <h2 className="font-display text-primary text-base font-semibold">
             {initial ? 'Edit lead' : 'New lead'}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-secondary hover:bg-white/5 hover:text-primary transition-colors"
+            className="p-1.5 rounded-lg text-secondary hover:bg-primary/5 hover:text-primary transition-colors"
             aria-label="Close"
           >
             <X size={16} />
@@ -102,25 +113,39 @@ export const LeadForm = ({ initial, submitting, onSubmit, onClose }: LeadFormPro
               <label htmlFor="lead-status" className="block text-secondary text-xs mb-1.5">
                 Status
               </label>
-              <select id="lead-status" {...register('status')} className={inputClass}>
-                {LEAD_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <Select
+                    id="lead-status"
+                    value={field.value}
+                    onChange={(v) => field.onChange(v as LeadStatus)}
+                    options={STATUS_OPTIONS}
+                    size="md"
+                    aria-label="Status"
+                  />
+                )}
+              />
             </div>
             <div>
               <label htmlFor="lead-source" className="block text-secondary text-xs mb-1.5">
                 Source
               </label>
-              <select id="lead-source" {...register('source')} className={inputClass}>
-                {LEAD_SOURCES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                control={control}
+                name="source"
+                render={({ field }) => (
+                  <Select
+                    id="lead-source"
+                    value={field.value}
+                    onChange={(v) => field.onChange(v as LeadSource)}
+                    options={SOURCE_OPTIONS}
+                    size="md"
+                    aria-label="Source"
+                  />
+                )}
+              />
             </div>
           </div>
 
@@ -128,7 +153,7 @@ export const LeadForm = ({ initial, submitting, onSubmit, onClose }: LeadFormPro
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 rounded-lg text-secondary text-xs hover:bg-white/5 hover:text-primary transition-colors"
+              className="px-3 py-1.5 rounded-lg text-secondary text-xs hover:bg-primary/5 hover:text-primary transition-colors"
             >
               Cancel
             </button>
