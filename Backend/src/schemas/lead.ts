@@ -23,6 +23,7 @@ export const listLeadsQuerySchema = z.object({
   search: z.string().trim().min(1).max(100).optional(),
   sort: z.enum(['latest', 'oldest']).optional().default('latest'),
   page: z.coerce.number().int().min(1).optional().default(1),
+  owner: z.string().trim().toLowerCase().email().max(254).optional(),
 });
 
 export const leadIdParamsSchema = z.object({

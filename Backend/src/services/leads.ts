@@ -1,4 +1,5 @@
 import { Lead, type LeadDoc } from '../models/Lead.js';
+import { User } from '../models/User.js';
 import { forbidden, notFound } from '../lib/errors.js';
 import type { Role } from '../models/User.js';
 import type { CreateLeadInput, UpdateLeadInput, ListLeadsQuery } from '../schemas/lead.js';
@@ -14,9 +15,21 @@ function escapeRegex(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function buildFilter(query: ListLeadsQuery, viewer: Viewer): Record<string, unknown> {
+async function buildFilter(
+  query: ListLeadsQuery,
+  viewer: Viewer,
+): Promise<Record<string, unknown>> {
   const filter: Record<string, unknown> = {};
-  if (viewer.role !== 'admin') filter.createdBy = viewer.id;
+
+  if (viewer.role !== 'admin') {
+    // Sales user — always restricted to their own leads. owner param is ignored.
+    filter.createdBy = viewer.id;
+  } else if (query.owner) {
+    // Admin filtering by owner email. Unknown email → force empty result.
+    const target = await User.findOne({ email: query.owner }, { _id: 1 }).lean();
+    filter.createdBy = target ? target._id : null;
+  }
+
   if (query.status) filter.status = query.status;
   if (query.source) filter.source = query.source;
   if (query.search) {
@@ -32,7 +45,7 @@ interface ListResult {
 }
 
 export async function listLeads(query: ListLeadsQuery, viewer: Viewer): Promise<ListResult> {
-  const filter = buildFilter(query, viewer);
+  const filter = await buildFilter(query, viewer);
   const sortDir: 1 | -1 = query.sort === 'oldest' ? 1 : -1;
   const total = await Lead.countDocuments(filter);
   const items = await Lead.find(filter)
@@ -50,10 +63,33 @@ export async function listLeads(query: ListLeadsQuery, viewer: Viewer): Promise<
   };
 }
 
-export function streamFilteredLeads(query: ListLeadsQuery, viewer: Viewer) {
-  const filter = buildFilter(query, viewer);
+export interface LeadCsvRow {
+  name: string;
+  email: string;
+  status: string;
+  source: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function listAllFilteredLeads(
+  query: ListLeadsQuery,
+  viewer: Viewer,
+): Promise<LeadCsvRow[]> {
+  const filter = await buildFilter(query, viewer);
   const sortDir: 1 | -1 = query.sort === 'oldest' ? 1 : -1;
-  return Lead.find(filter).sort({ createdAt: sortDir }).lean().cursor();
+  const rows = await Lead.find(filter, {
+    name: 1,
+    email: 1,
+    status: 1,
+    source: 1,
+    createdAt: 1,
+    updatedAt: 1,
+    _id: 0,
+  })
+    .sort({ createdAt: sortDir })
+    .lean();
+  return rows as unknown as LeadCsvRow[];
 }
 
 export async function getLead(id: string, viewer: Viewer): Promise<LeadDoc> {
