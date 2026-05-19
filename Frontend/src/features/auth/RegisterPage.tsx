@@ -7,14 +7,32 @@ import { toast } from 'sonner';
 import { register as registerApi } from '../../api/auth';
 import { useAuthStore } from '../../store/authStore';
 import { extractErrorMessage } from '../../lib/api';
+import { PasswordInput } from '../../components/ui/PasswordInput';
+import { AuthShell, type AuthStep } from './AuthShell';
 
-const registerSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(100),
-  email: z.string().email('Invalid email').max(254),
-  password: z.string().min(8, 'At least 8 characters').max(128),
-});
+const registerSchema = z
+  .object({
+    firstName: z.string().trim().min(1, 'First name is required').max(50),
+    lastName: z.string().trim().min(1, 'Last name is required').max(50),
+    email: z.string().email('Invalid email').max(254),
+    password: z.string().min(8, 'Must be at least 8 characters').max(128),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
+
+const inputClass =
+  'w-full px-3 py-2 rounded-lg bg-primary/5 border border-border text-primary text-sm placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent-brand';
+
+const REGISTER_STEPS: AuthStep[] = [
+  { label: 'Create account', state: 'active' },
+  { label: 'Add your first leads', state: 'upcoming' },
+  { label: 'Filter, export, track', state: 'upcoming' },
+];
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
@@ -30,7 +48,12 @@ export const RegisterPage = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     setSubmitting(true);
     try {
-      const { user, token } = await registerApi(values);
+      const name = `${values.firstName} ${values.lastName}`.trim();
+      const { user, token } = await registerApi({
+        name,
+        email: values.email,
+        password: values.password,
+      });
       setSession(token, user);
       toast.success('Account created');
       navigate('/', { replace: true });
@@ -42,97 +65,126 @@ export const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background font-sans text-primary flex items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <div className="flex items-center gap-3 justify-center mb-8">
-          <img
-            src="/leadsrack-logo.jpg"
-            alt="Leadsrack"
-            className="w-10 h-10 rounded-full object-cover"
+    <AuthShell
+      hero={{
+        title: 'Get started with Leadsrack',
+        subtitle: 'Complete these easy steps to register your account.',
+      }}
+      steps={REGISTER_STEPS}
+    >
+      <h1 className="font-display text-primary text-xl font-semibold">Sign Up Account</h1>
+      <p className="text-secondary text-xs mt-1 mb-7">
+        Enter your personal data to create your account.
+      </p>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="firstName" className="block text-secondary text-xs mb-1.5">
+              First Name
+            </label>
+            <input
+              id="firstName"
+              {...register('firstName')}
+              autoComplete="given-name"
+              className={inputClass}
+              placeholder="eg. John"
+            />
+            {errors.firstName ? (
+              <p role="alert" className="text-xs text-red-400 mt-1">
+                {errors.firstName.message}
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <label htmlFor="lastName" className="block text-secondary text-xs mb-1.5">
+              Last Name
+            </label>
+            <input
+              id="lastName"
+              {...register('lastName')}
+              autoComplete="family-name"
+              className={inputClass}
+              placeholder="eg. Francisco"
+            />
+            {errors.lastName ? (
+              <p role="alert" className="text-xs text-red-400 mt-1">
+                {errors.lastName.message}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="email" className="block text-secondary text-xs mb-1.5">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            {...register('email')}
+            className={inputClass}
+            placeholder="eg. johnfrans@gmail.com"
           />
-          <span className="text-primary text-lg font-semibold">Leadsrack</span>
+          {errors.email ? (
+            <p role="alert" className="text-xs text-red-400 mt-1">
+              {errors.email.message}
+            </p>
+          ) : null}
         </div>
 
-        <div className="bg-white/5 rounded-xl border border-border p-6">
-          <h1 className="text-primary text-base font-semibold">Create your account</h1>
-          <p className="text-secondary text-xs mt-1 mb-6">
-            New accounts default to the &ldquo;sales&rdquo; role.
-          </p>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-            <div>
-              <label htmlFor="name" className="block text-secondary text-xs mb-1.5">
-                Full name
-              </label>
-              <input
-                id="name"
-                {...register('name')}
-                autoComplete="name"
-                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-border text-primary text-sm placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent-brand"
-                placeholder="Aaditya Gunjal"
-              />
-              {errors.name ? (
-                <p role="alert" className="text-xs text-red-400 mt-1">
-                  {errors.name.message}
-                </p>
-              ) : null}
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-secondary text-xs mb-1.5">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                {...register('email')}
-                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-border text-primary text-sm placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent-brand"
-                placeholder="you@example.com"
-              />
-              {errors.email ? (
-                <p role="alert" className="text-xs text-red-400 mt-1">
-                  {errors.email.message}
-                </p>
-              ) : null}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-secondary text-xs mb-1.5">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                {...register('password')}
-                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-border text-primary text-sm placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent-brand"
-                placeholder="At least 8 characters"
-              />
-              {errors.password ? (
-                <p role="alert" className="text-xs text-red-400 mt-1">
-                  {errors.password.message}
-                </p>
-              ) : null}
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-2 rounded-lg bg-accent-brand text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? 'Creating account…' : 'Create account'}
-            </button>
-          </form>
-
-          <p className="text-secondary text-xs text-center mt-6">
-            Already have an account?{' '}
-            <Link to="/login" className="text-accent-brand hover:underline">
-              Sign in
-            </Link>
-          </p>
+        <div>
+          <label htmlFor="password" className="block text-secondary text-xs mb-1.5">
+            Password
+          </label>
+          <PasswordInput
+            id="password"
+            autoComplete="new-password"
+            placeholder="Enter your password"
+            {...register('password')}
+          />
+          {errors.password ? (
+            <p role="alert" className="text-xs text-red-400 mt-1">
+              {errors.password.message}
+            </p>
+          ) : (
+            <p className="text-xs text-muted mt-1">Must be at least 8 characters.</p>
+          )}
         </div>
-      </div>
-    </div>
+
+        <div>
+          <label htmlFor="confirmPassword" className="block text-secondary text-xs mb-1.5">
+            Confirm Password
+          </label>
+          <PasswordInput
+            id="confirmPassword"
+            autoComplete="new-password"
+            placeholder="Re-enter your password"
+            {...register('confirmPassword')}
+          />
+          {errors.confirmPassword ? (
+            <p role="alert" className="text-xs text-red-400 mt-1">
+              {errors.confirmPassword.message}
+            </p>
+          ) : null}
+        </div>
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full py-2.5 rounded-lg bg-primary text-background text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting ? 'Creating account…' : 'Sign Up'}
+        </button>
+      </form>
+
+      <p className="text-secondary text-xs text-center mt-6">
+        Already have an account?{' '}
+        <Link to="/login" className="text-primary font-medium hover:underline">
+          Log in
+        </Link>
+      </p>
+    </AuthShell>
   );
 };
