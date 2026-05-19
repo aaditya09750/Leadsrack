@@ -3,6 +3,38 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Light mode (default) — slightly more saturated page bg so white cards pop */
+    --c-bg: 240 243 249; /* #F0F3F9 cool pale blue-grey */
+    --c-surface: 255 255 255; /* white sidebar */
+    --c-fg: 28 28 28; /* #1C1C1C primary text + overlay base */
+    --c-surface-card: rgb(255, 255, 255); /* solid white elevated cards */
+    --c-shadow-card:
+      0 1px 2px rgba(28, 28, 28, 0.04),
+      0 4px 12px rgba(28, 28, 28, 0.05);
+    --c-border-strong: rgba(28, 28, 28, 0.07);
+    /* KPI tile bgs — each a distinct soft pastel so they stand out on the #F0F3F9 page bg */
+    --c-stat-views: #d6ecff;
+    --c-stat-visits: #ffe0cf;
+    --c-stat-newUsers: #dbf5e0;
+    --c-stat-activeUsers: #ebe0ff;
+  }
+
+  :root.dark {
+    /* Dark mode — unchanged from prior implementation */
+    --c-bg: 28 28 28;
+    --c-surface: 28 28 28;
+    --c-fg: 255 255 255;
+    --c-surface-card: rgba(255, 255, 255, 0.05); /* matches the original bg-primary/5 */
+    --c-shadow-card: 0 0 0 transparent; /* no elevation in dark */
+    --c-border-strong: rgba(255, 255, 255, 0.12); /* unchanged from prior dark theme */
+    /* KPI tile bgs — dark mode preserves the original pastel values */
+    --c-stat-views: #e3f5ff;
+    --c-stat-visits: #e5ecf6;
+    --c-stat-newUsers: #e3f5ff;
+    --c-stat-activeUsers: #e5ecf6;
+  }
+
   body {
     @apply bg-background text-primary antialiased;
   }
@@ -17,9 +49,9 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full;
+  @apply bg-primary/10 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-white/20;
+  @apply bg-primary/20;
 }
