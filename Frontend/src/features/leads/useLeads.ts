@@ -38,6 +38,7 @@ export function useCreateLead(): UseMutationResult<Lead, Error, CreateInput> {
     mutationFn: (input: CreateInput) => createLead(input),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: leadsKeys.all });
+      void qc.invalidateQueries({ queryKey: ['team'] });
     },
   });
 }
@@ -48,6 +49,7 @@ export function useUpdateLead(): UseMutationResult<Lead, Error, UpdateInput> {
     mutationFn: ({ id, data }: UpdateInput) => updateLead(id, data),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: leadsKeys.all });
+      void qc.invalidateQueries({ queryKey: ['team'] });
     },
   });
 }
@@ -58,6 +60,7 @@ export function useDeleteLead(): UseMutationResult<void, Error, string> {
     mutationFn: (id: string) => deleteLead(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: leadsKeys.all });
+      void qc.invalidateQueries({ queryKey: ['team'] });
     },
   });
 }
