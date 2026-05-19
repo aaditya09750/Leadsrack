@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Card } from '../ui/Card';
 
@@ -12,12 +11,14 @@ export const UserChart = () => {
       textStyle: { color: '#FFFFFF', fontSize: 12, fontFamily: 'Inter' },
       padding: [8, 12],
       borderRadius: 8,
-      formatter: (params: any) => {
+      formatter: (params: Array<{ name: string; value: number }>) => {
+        const head = params[0];
+        if (!head) return '';
         return `<div class="font-sans">
-          <div class="text-[10px] text-secondary mb-1">${params[0].name}</div>
-          <div class="font-bold">${params[0].value.toLocaleString()}</div>
+          <div class="text-[10px] text-secondary mb-1">${head.name}</div>
+          <div class="font-bold">${head.value.toLocaleString()}</div>
         </div>`;
-      }
+      },
     },
     grid: {
       left: '0%',

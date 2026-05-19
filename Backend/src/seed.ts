@@ -11,7 +11,7 @@ import {
 import { logger } from './lib/logger.js';
 
 const FIRST_NAMES = [
-  'Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna',
+  'Aarav', 'Vivaan', 'Aaditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna',
   'Ishaan', 'Rohan', 'Kabir', 'Rahul', 'Aniket', 'Dev', 'Priya', 'Ananya', 'Diya', 'Aanya',
 ];
 const LAST_NAMES = ['Sharma', 'Verma', 'Gupta', 'Mehta', 'Patel', 'Khan', 'Singh', 'Iyer', 'Nair', 'Rao'];

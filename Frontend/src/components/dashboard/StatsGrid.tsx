@@ -1,4 +1,3 @@
-import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { cn } from '../../lib/utils';

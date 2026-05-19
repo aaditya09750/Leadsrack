@@ -1,4 +1,3 @@
-import React from 'react';
 import { Bug, User, Radio } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 
