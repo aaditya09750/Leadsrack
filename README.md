@@ -9,25 +9,28 @@ Two-app monorepo built for the **Smart Leads Dashboard** internship assignment. 
 - **JWT authentication** — bcrypt-hashed passwords, register/login/me endpoints, protected client routes.
 - **Leads CRUD** — name, email, status (`New | Contacted | Qualified | Lost`), source (`Website | Instagram | Referral`), createdAt, ownership tracked by `createdBy`.
 - **Composable filters + search + sort + pagination** — all on the server; multiple filters compose; `limit` fixed at 10; response envelope `{ data, meta }`.
-- **Debounced search** — 400 ms `useDebounce` before forming the React Query key.
-- **CSV export** — server-streamed via `@json2csv/node` Transform pipeline; respects the active filters.
-- **RBAC** — `admin` sees all leads; `sales` users see and act on only their own (enforced in the service layer, not just middleware).
-- **Loading / empty / error states** on every async surface.
+- **Debounced search** — 500 ms `useDebounce` before forming the React Query key.
+- **CSV export** — `@json2csv/node` AsyncParser; respects the active filters.
+- **RBAC** — `admin` sees all leads + the Team page; `sales` users see and act on only their own (enforced in the service layer, not just middleware).
+- **View lead details** — Eye-icon action + row-click open a read-only modal; Edit button swaps to the edit form.
+- **Responsive shell** — desktop sidebar at lg+, mobile hamburger drawer below.
+- **Loading / empty / error states** on every async surface, with a `Skeleton` primitive for placeholder UI.
 - **Dark-mode toggle** — Tailwind `darkMode: 'class'`, persisted to `localStorage`, default dark.
 - **Dockerized** — three-service compose (mongo + api + web) running on a single network with healthcheck-gated startup.
+- **Production-hardened API** — helmet, CORS allowlist, gzip compression, rate-limited auth + writes, request-log redaction, DB-aware health check, graceful SIGTERM shutdown.
 
 Anything beyond this lives in the [Roadmap](#roadmap), not the code.
 
 ## Stack
 
-| Layer | Tech |
-| --- | --- |
-| Frontend | React 19, Vite 6, TypeScript 5.8, Tailwind 3, React Router 7, TanStack Query 5, Zustand 5, React Hook Form 7, Zod 4, Sonner |
-| Backend | Express 5, Mongoose 8, TypeScript 5.9, Zod 3, bcryptjs, jsonwebtoken, Helmet, CORS, express-rate-limit, Pino, @json2csv/node |
-| Database | MongoDB 7 |
-| Tooling | pnpm 10, Husky 9, Commitlint, lint-staged, Prettier, ESLint 9 flat configs |
-| Container | Multi-stage Dockerfiles (node:22-alpine, nginx:1.27-alpine), docker compose v2 |
-| CI | GitHub Actions (lint, typecheck, build per workspace) |
+| Layer     | Tech                                                                                                                         |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Frontend  | React 19, Vite 6, TypeScript 5.8, Tailwind 3, React Router 7, TanStack Query 5, Zustand 5, React Hook Form 7, Zod 4, Sonner  |
+| Backend   | Express 5, Mongoose 8, TypeScript 5.9, Zod 3, bcryptjs, jsonwebtoken, Helmet, CORS, express-rate-limit, Pino, @json2csv/node |
+| Database  | MongoDB 7                                                                                                                    |
+| Tooling   | pnpm 10, Husky 9, Commitlint, lint-staged, Prettier, ESLint 9 flat configs                                                   |
+| Container | Multi-stage Dockerfiles (node:22-alpine, nginx:1.27-alpine), docker compose v2                                               |
+| CI        | GitHub Actions (lint, typecheck, build per workspace)                                                                        |
 
 ## Architecture
 
@@ -90,18 +93,18 @@ pnpm dev               # http://localhost:3000
 
 ## Environment variables
 
-| Var | Where | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `MONGODB_URI` | Backend | yes | — | Mongo connection string |
-| `JWT_SECRET` | Backend | yes | — | Min 32 chars |
-| `JWT_EXPIRES_IN` | Backend | no | `7d` | Token lifetime |
-| `PORT` | Backend | no | `4000` | HTTP port |
-| `CORS_ORIGIN` | Backend | no | `http://localhost:3000` | Comma-separated allowed origins |
-| `LOG_LEVEL` | Backend | no | `info` | pino level |
-| `BCRYPT_ROUNDS` | Backend | no | `10` | bcrypt cost factor |
-| `NODE_ENV` | Backend | no | `development` | `development \| test \| production` |
-| `VITE_API_URL` | Frontend | yes | — | API base URL incl. `/api` |
-| `WEB_PORT` / `API_PORT` / `MONGO_PORT` | Compose | no | `8080` / `4000` / `27017` | Host port mappings |
+| Var                                    | Where    | Required | Default                   | Description                         |
+| -------------------------------------- | -------- | -------- | ------------------------- | ----------------------------------- |
+| `MONGODB_URI`                          | Backend  | yes      | —                         | Mongo connection string             |
+| `JWT_SECRET`                           | Backend  | yes      | —                         | Min 32 chars                        |
+| `JWT_EXPIRES_IN`                       | Backend  | no       | `7d`                      | Token lifetime                      |
+| `PORT`                                 | Backend  | no       | `4000`                    | HTTP port                           |
+| `CORS_ORIGIN`                          | Backend  | no       | `http://localhost:3000`   | Comma-separated allowed origins     |
+| `LOG_LEVEL`                            | Backend  | no       | `info`                    | pino level                          |
+| `BCRYPT_ROUNDS`                        | Backend  | no       | `10`                      | bcrypt cost factor                  |
+| `NODE_ENV`                             | Backend  | no       | `development`             | `development \| test \| production` |
+| `VITE_API_URL`                         | Frontend | yes      | —                         | API base URL incl. `/api`           |
+| `WEB_PORT` / `API_PORT` / `MONGO_PORT` | Compose  | no       | `8080` / `4000` / `27017` | Host port mappings                  |
 
 Every variable referenced anywhere in code is listed in the corresponding `.env.example`.
 
@@ -109,31 +112,31 @@ Every variable referenced anywhere in code is listed in the corresponding `.env.
 
 ### Root
 
-| Script | Purpose |
-| --- | --- |
-| `pnpm format` | Prettier-format markdown / JSON / YAML |
-| `pnpm format:check` | Prettier check |
+| Script              | Purpose                                |
+| ------------------- | -------------------------------------- |
+| `pnpm format`       | Prettier-format markdown / JSON / YAML |
+| `pnpm format:check` | Prettier check                         |
 
 ### Backend
 
-| Script | Purpose |
-| --- | --- |
-| `pnpm dev` | tsx watch with auto-reload |
-| `pnpm build` | tsc to `dist/` |
-| `pnpm start` | run compiled server |
-| `pnpm lint` / `lint:fix` | ESLint |
-| `pnpm typecheck` | `tsc --noEmit` |
-| `pnpm seed` | idempotent seed |
+| Script                   | Purpose                    |
+| ------------------------ | -------------------------- |
+| `pnpm dev`               | tsx watch with auto-reload |
+| `pnpm build`             | tsc to `dist/`             |
+| `pnpm start`             | run compiled server        |
+| `pnpm lint` / `lint:fix` | ESLint                     |
+| `pnpm typecheck`         | `tsc --noEmit`             |
+| `pnpm seed`              | idempotent seed            |
 
 ### Frontend
 
-| Script | Purpose |
-| --- | --- |
-| `pnpm dev` | Vite dev server on :3000 |
-| `pnpm build` | Production bundle to `dist/` |
-| `pnpm preview` | Preview built bundle |
-| `pnpm lint` / `lint:fix` | ESLint |
-| `pnpm typecheck` | `tsc --noEmit` |
+| Script                   | Purpose                      |
+| ------------------------ | ---------------------------- |
+| `pnpm dev`               | Vite dev server on :3000     |
+| `pnpm build`             | Production bundle to `dist/` |
+| `pnpm preview`           | Preview built bundle         |
+| `pnpm lint` / `lint:fix` | ESLint                       |
+| `pnpm typecheck`         | `tsc --noEmit`               |
 
 ## Project structure
 
@@ -185,26 +188,59 @@ Leadsrack/
 
 ## API summary
 
-| Method | Path | Auth | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/api/auth/register` | public | Create user (defaults role=sales) |
-| `POST` | `/api/auth/login` | public | Get JWT |
-| `GET` | `/api/auth/me` | bearer | Current user |
-| `GET` | `/api/leads` | bearer | List w/ `?status&source&search&sort&page` |
-| `POST` | `/api/leads` | bearer | Create |
-| `GET` | `/api/leads/:id` | bearer (owner/admin) | Read one |
-| `PATCH` | `/api/leads/:id` | bearer (owner/admin) | Update |
-| `DELETE` | `/api/leads/:id` | bearer (owner/admin) | Delete |
-| `GET` | `/api/leads/export.csv` | bearer | Filtered CSV stream |
-| `GET` | `/api/health` | public | Liveness |
+| Method   | Path                    | Auth                 | Purpose                                                     |
+| -------- | ----------------------- | -------------------- | ----------------------------------------------------------- |
+| `POST`   | `/api/auth/register`    | public               | Create user (defaults role=sales)                           |
+| `POST`   | `/api/auth/login`       | public               | Get JWT                                                     |
+| `GET`    | `/api/auth/me`          | bearer               | Current user                                                |
+| `GET`    | `/api/leads`            | bearer               | List w/ `?status&source&search&sort&page`                   |
+| `POST`   | `/api/leads`            | bearer               | Create                                                      |
+| `GET`    | `/api/leads/:id`        | bearer (owner/admin) | Read one                                                    |
+| `PATCH`  | `/api/leads/:id`        | bearer (owner/admin) | Update                                                      |
+| `DELETE` | `/api/leads/:id`        | bearer (owner/admin) | Delete                                                      |
+| `GET`    | `/api/leads/export.csv` | bearer               | Filtered CSV stream                                         |
+| `GET`    | `/api/health`           | public               | Liveness + DB readiness (returns 503 if Mongo disconnected) |
 
 Full shapes, status codes, and copy-paste `curl` examples in [`docs/API.md`](docs/API.md).
 
 ## Deployment
 
-- **Web**: build the Frontend (`pnpm build`), serve `dist/` from any static host. Netlify config already in `Frontend/netlify.toml`.
-- **API**: build the Docker image from `Backend/Dockerfile`, deploy to Render / Railway / Fly / ECS / any container host. Provide all `Backend/.env.example` vars via the host's secret manager.
-- **DB**: MongoDB Atlas free tier or self-hosted. See [`docs/SETUP.md`](docs/SETUP.md#mongodb-atlas).
+The project is wired for a one-click split deploy: **Backend → Render**, **Frontend → Vercel**, **DB → MongoDB Atlas**. Infrastructure as Code lives in [`render.yaml`](render.yaml) and [`Frontend/vercel.json`](Frontend/vercel.json).
+
+### 1. Database — MongoDB Atlas (free tier)
+
+1. Create a free cluster at <https://cloud.mongodb.com>.
+2. **Database Access** → add a user (e.g. `leadsrack_app`) with a strong password.
+3. **Network Access** → allow `0.0.0.0/0` (Render's outbound IPs are dynamic on the free tier).
+4. Copy the connection string: `mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/leadsrackDB?retryWrites=true&w=majority`.
+
+### 2. Backend — Render
+
+1. Push this repo to GitHub.
+2. Render dashboard → **New → Blueprint → connect this repo**. Render auto-detects `render.yaml` and provisions the `leadsrack-api` service.
+3. Set the two `sync: false` env vars in the Render dashboard:
+   - `MONGODB_URI` — the Atlas connection string from step 1.
+   - `CORS_ORIGIN` — your Vercel URL (set this after step 3; placeholder OK for first deploy).
+4. Wait for first deploy to finish. Render auto-generates `JWT_SECRET` via `generateValue: true`.
+5. One-time seed (creates admin + sales + 25 sample leads): Render dashboard → **Shell** → `pnpm seed`.
+6. Sanity-check: `https://<your-service>.onrender.com/api/health` → `{ "status": "ok", "db": "connected" }`.
+
+### 3. Frontend — Vercel
+
+1. Vercel dashboard → **New Project → Import this repo**.
+2. **Root directory**: `Frontend` (Vercel auto-detects Vite via `vercel.json`).
+3. **Environment variables**: `VITE_API_URL = https://<your-render-service>.onrender.com/api`
+4. Deploy. The SPA rewrite in `vercel.json` ensures hard-refresh on `/leads` or `/team` doesn't 404.
+5. Once Vercel assigns the URL (e.g. `https://leadsrack.vercel.app`), go back to Render and update `CORS_ORIGIN` to it, then trigger a redeploy.
+
+### Notes
+
+- **Render free tier sleeps after 15 min idle.** First request after sleep takes ~30 s. Paid tier ($7/mo) removes this.
+- **Vercel preview URLs** won't pass CORS by default. Either set `CORS_ORIGIN` to a comma-separated list including the preview domain pattern, or stick to production-only deploys.
+- **Atlas free tier (M0)** caps at 512 MB — more than enough for this dataset.
+- `BCRYPT_ROUNDS=12` in production (set in `render.yaml`); local dev uses `10` for fast iteration.
+
+Full backend env reference: [`Backend/.env.example`](Backend/.env.example).
 
 ## Roadmap
 

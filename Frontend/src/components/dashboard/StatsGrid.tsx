@@ -25,7 +25,7 @@ export const StatsGrid = () => {
   const stats = data?.kpis ?? KPI_METRICS;
 
   return (
-    <div className="flex flex-wrap gap-5 px-7 py-7">
+    <div className="flex flex-wrap gap-4 md:gap-5 px-4 md:px-7 py-5 md:py-7">
       {stats.map((stat) => {
         const Icon = KPI_ICONS[stat.key] ?? Eye;
         return (

@@ -9,7 +9,7 @@ import { MarketingMonthly } from '../components/dashboard/MarketingMonthly';
 export const DashboardPage = () => {
   return (
     <>
-      <div className="px-7 pt-7 pb-4 flex items-center justify-between">
+      <div className="px-4 md:px-7 pt-5 md:pt-7 pb-4 flex items-center justify-between">
         <button
           type="button"
           className="flex items-center gap-1 text-primary text-sm font-semibold hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors"
@@ -21,7 +21,7 @@ export const DashboardPage = () => {
 
       <StatsGrid />
 
-      <div className="px-7 grid grid-cols-1 lg:grid-cols-3 gap-7 mb-7">
+      <div className="px-4 md:px-7 grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-7 mb-5 md:mb-7">
         <div className="lg:col-span-2">
           <UserChart />
         </div>
@@ -30,12 +30,12 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      <div className="px-7 grid grid-cols-1 lg:grid-cols-2 gap-7 mb-7">
+      <div className="px-4 md:px-7 grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-7 mb-5 md:mb-7">
         <TrafficByDevice />
         <TrafficByLocation />
       </div>
 
-      <div className="px-7">
+      <div className="px-4 md:px-7">
         <MarketingMonthly />
       </div>
     </>

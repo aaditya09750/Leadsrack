@@ -6,7 +6,7 @@ import { logger } from './lib/logger.js';
 async function start(): Promise<void> {
   await connectDB();
   const app = createApp();
-  const server = app.listen(env.PORT, () => {
+  const server = app.listen(env.PORT, '0.0.0.0', () => {
     logger.info({ port: env.PORT, env: env.NODE_ENV }, 'server started');
   });
 

@@ -11,7 +11,7 @@ export const TeamPage = () => {
 
   return (
     <>
-      <div className="px-7 pt-7 pb-2 flex items-center justify-between">
+      <div className="px-4 md:px-7 pt-5 md:pt-7 pb-2 flex items-center justify-between">
         <div>
           <h1 className="font-display text-primary text-xl font-semibold">Team</h1>
           <p className="text-secondary text-xs mt-1">Sales pipeline by user.</p>
@@ -21,17 +21,17 @@ export const TeamPage = () => {
       <TeamSummary summary={data?.summary} loading={isLoading} />
 
       {isError ? (
-        <div className="px-7">
+        <div className="px-4 md:px-7">
           <ErrorState message={extractErrorMessage(error)} onRetry={() => void refetch()} />
         </div>
       ) : isLoading ? (
-        <div className="px-7">
+        <div className="px-4 md:px-7">
           <div className="rounded-xl border border-border bg-surface py-12 flex justify-center">
             <LoadingSpinner label="Loading team" />
           </div>
         </div>
       ) : !data || data.members.length === 0 ? (
-        <div className="px-7">
+        <div className="px-4 md:px-7">
           <EmptyState
             title="No team members yet"
             description="Invite users to start building the team."

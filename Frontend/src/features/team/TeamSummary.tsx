@@ -21,7 +21,7 @@ interface Tile {
 export const TeamSummary = ({ summary, loading }: Props) => {
   if (loading || !summary) {
     return (
-      <div className="flex flex-wrap gap-5 px-7 py-7">
+      <div className="flex flex-wrap gap-4 md:gap-5 px-4 md:px-7 py-5 md:py-7">
         {[0, 1, 2].map((i) => (
           <Skeleton key={i} className="w-full sm:w-[270px] h-[96px] rounded-xl" />
         ))}
@@ -56,7 +56,7 @@ export const TeamSummary = ({ summary, loading }: Props) => {
   ];
 
   return (
-    <div className="flex flex-wrap gap-5 px-7 py-7">
+    <div className="flex flex-wrap gap-4 md:gap-5 px-4 md:px-7 py-5 md:py-7">
       {tiles.map((t) => (
         <Card
           key={t.label}

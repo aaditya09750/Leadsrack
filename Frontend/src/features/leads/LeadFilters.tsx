@@ -45,6 +45,10 @@ const SORT_OPTIONS: SelectOption[] = [
   { value: 'oldest', label: 'Oldest first' },
 ];
 
+// Mobile pattern: search row, then 2-col grid of selects, then full-width button row.
+// `w-[calc(50%-0.375rem)]` = half-width minus half of `gap-3` (12px / 2 = 6px = 0.375rem).
+const halfOnMobile = 'w-[calc(50%-0.375rem)]';
+
 export const LeadFilters = ({
   search,
   onSearchChange,
@@ -69,8 +73,8 @@ export const LeadFilters = ({
     : null;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 px-7 mb-5">
-      <div className="relative flex-1 min-w-[240px]">
+    <div className="flex flex-wrap items-center gap-3 px-4 md:px-7 mb-5">
+      <div className="relative w-full md:flex-1 md:min-w-[240px]">
         <Search
           size={16}
           className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"
@@ -90,7 +94,7 @@ export const LeadFilters = ({
         options={STATUS_OPTIONS}
         size="md"
         aria-label="Filter by status"
-        className="w-[160px]"
+        className={`${halfOnMobile} md:w-[160px]`}
       />
 
       <Select
@@ -99,7 +103,7 @@ export const LeadFilters = ({
         options={SOURCE_OPTIONS}
         size="md"
         aria-label="Filter by source"
-        className="w-[160px]"
+        className={`${halfOnMobile} md:w-[160px]`}
       />
 
       {memberOptions ? (
@@ -109,7 +113,7 @@ export const LeadFilters = ({
           options={memberOptions}
           size="md"
           aria-label="Filter by team member"
-          className="w-[180px]"
+          className={`${halfOnMobile} md:w-[180px]`}
         />
       ) : null}
 
@@ -119,15 +123,15 @@ export const LeadFilters = ({
         options={SORT_OPTIONS}
         size="md"
         aria-label="Sort order"
-        className="w-[160px]"
+        className={`${halfOnMobile} md:w-[160px]`}
       />
 
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-2 w-full md:w-auto md:ml-auto">
         <button
           type="button"
           onClick={onExport}
           disabled={exporting}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-primary text-sm hover:bg-primary/5 transition-colors disabled:opacity-50"
+          className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border text-primary text-sm hover:bg-primary/5 transition-colors disabled:opacity-50"
         >
           <Download size={16} />
           {exporting ? 'Exporting…' : 'Export CSV'}
@@ -135,7 +139,7 @@ export const LeadFilters = ({
         <button
           type="button"
           onClick={onNewLead}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent-brand text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-accent-brand text-white text-sm font-medium hover:opacity-90 transition-opacity"
         >
           <Plus size={16} />
           New lead

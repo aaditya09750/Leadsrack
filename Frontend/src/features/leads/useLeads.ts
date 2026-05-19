@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
-import { createLead, deleteLead, listLeads, updateLead } from '../../api/leads';
+import { createLead, deleteLead, getLead, listLeads, updateLead } from '../../api/leads';
 import type {
   Lead,
   LeadsQuery,
@@ -11,12 +11,21 @@ import type {
 export const leadsKeys = {
   all: ['leads'] as const,
   list: (query: LeadsQuery) => ['leads', 'list', query] as const,
+  detail: (id: string) => ['leads', 'detail', id] as const,
 };
 
 export function useLeadsQuery(query: LeadsQuery) {
   return useQuery<Paginated<Lead>>({
     queryKey: leadsKeys.list(query),
     queryFn: () => listLeads(query),
+  });
+}
+
+export function useLead(id: string | null) {
+  return useQuery<Lead>({
+    queryKey: leadsKeys.detail(id ?? ''),
+    queryFn: () => getLead(id as string),
+    enabled: Boolean(id),
   });
 }
 

@@ -108,7 +108,7 @@ export const LeadForm = ({ initial, submitting, onSubmit, onClose }: LeadFormPro
             ) : null}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label htmlFor="lead-status" className="block text-secondary text-xs mb-1.5">
                 Status

@@ -4,6 +4,10 @@ import { env } from '../config/env.js';
 export const logger = pino({
   level: env.LOG_LEVEL,
   base: { service: 'leadsrack-api' },
+  redact: {
+    paths: ['req.headers.authorization', 'req.headers.cookie', 'res.headers["set-cookie"]'],
+    censor: '[REDACTED]',
+  },
   ...(env.NODE_ENV === 'development' && {
     transport: {
       target: 'pino-pretty',

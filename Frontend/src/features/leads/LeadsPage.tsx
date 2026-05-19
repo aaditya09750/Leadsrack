@@ -13,6 +13,7 @@ import { useTeam } from '../team/useTeam';
 import { LeadFilters, type MemberOption } from './LeadFilters';
 import { LeadTable } from './LeadTable';
 import { LeadForm, type LeadFormValues } from './LeadForm';
+import { LeadDetail } from './LeadDetail';
 import {
   useLeadsQuery,
   useCreateLead,
@@ -43,6 +44,7 @@ export const LeadsPage = () => {
   const [source, setSource] = useState<LeadSource | ''>('');
   const [sort, setSort] = useState<SortOrder>('latest');
   const [page, setPage] = useState(1);
+  const [viewing, setViewing] = useState<Lead | null>(null);
   const [editing, setEditing] = useState<Lead | null>(null);
   const [creating, setCreating] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -131,7 +133,7 @@ export const LeadsPage = () => {
 
   return (
     <>
-      <div className="px-7 pt-7 pb-4 flex items-center justify-between">
+      <div className="px-4 md:px-7 pt-5 md:pt-7 pb-4 flex items-center justify-between">
         <div>
           <h1 className="font-display text-primary text-xl font-semibold">Leads</h1>
           <p className="text-secondary text-xs mt-1">
@@ -174,17 +176,17 @@ export const LeadsPage = () => {
       />
 
       {isLoading ? (
-        <div className="px-7">
+        <div className="px-4 md:px-7">
           <div className="rounded-xl border border-border bg-surface py-12 flex justify-center">
             <LoadingSpinner label="Loading leads" />
           </div>
         </div>
       ) : isError ? (
-        <div className="px-7">
+        <div className="px-4 md:px-7">
           <ErrorState message={extractErrorMessage(error)} onRetry={() => void refetch()} />
         </div>
       ) : leads.length === 0 ? (
-        <div className="px-7">
+        <div className="px-4 md:px-7">
           <EmptyState
             title="No leads yet"
             description={
@@ -195,11 +197,16 @@ export const LeadsPage = () => {
           />
         </div>
       ) : (
-        <LeadTable leads={leads} onEdit={setEditing} onDelete={(l) => void handleDelete(l)} />
+        <LeadTable
+          leads={leads}
+          onView={setViewing}
+          onEdit={setEditing}
+          onDelete={(l) => void handleDelete(l)}
+        />
       )}
 
       {meta && meta.totalPages > 1 ? (
-        <div className="px-7 mt-4 flex items-center justify-between text-xs text-secondary">
+        <div className="px-4 md:px-7 mt-4 flex items-center justify-between text-xs text-secondary">
           <span>
             Page {meta.page} of {meta.totalPages}
           </span>
@@ -224,6 +231,17 @@ export const LeadsPage = () => {
             </button>
           </div>
         </div>
+      ) : null}
+
+      {viewing ? (
+        <LeadDetail
+          lead={viewing}
+          onClose={() => setViewing(null)}
+          onEdit={(l) => {
+            setViewing(null);
+            setEditing(l);
+          }}
+        />
       ) : null}
 
       {creating ? (

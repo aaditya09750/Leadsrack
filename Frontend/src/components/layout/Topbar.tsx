@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { Bell, LogOut, Moon, Sun } from 'lucide-react';
+import { Bell, LogOut, Menu, Moon, Sun } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { useUIStore } from '../../store/uiStore';
@@ -17,20 +17,29 @@ export const Topbar = () => {
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggle);
   const openRightDrawer = useUIStore((s) => s.openRightDrawer);
+  const openMobileNav = useUIStore((s) => s.openMobileNav);
 
   const current = BREADCRUMB[location.pathname] ?? 'Page';
 
   return (
-    <header className="h-[68px] border-b border-border flex items-center justify-between px-7 sticky top-0 bg-background/80 backdrop-blur-xl z-10">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-secondary">Leadsrack</span>
-          <span className="text-muted">/</span>
-          <span className="text-primary">{current}</span>
+    <header className="h-[68px] border-b border-border flex items-center justify-between gap-3 px-4 md:px-7 sticky top-0 bg-background/80 backdrop-blur-xl z-10">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <button
+          type="button"
+          onClick={openMobileNav}
+          className="lg:hidden p-1.5 -ml-1.5 rounded-lg text-primary hover:bg-primary/5 transition-colors shrink-0"
+          aria-label="Open navigation"
+        >
+          <Menu size={20} />
+        </button>
+        <div className="flex items-center gap-2 text-sm min-w-0">
+          <span className="text-secondary hidden sm:inline">Leadsrack</span>
+          <span className="text-muted hidden sm:inline">/</span>
+          <span className="text-primary truncate">{current}</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         <button
           type="button"
           onClick={toggleTheme}
@@ -55,9 +64,11 @@ export const Topbar = () => {
         </button>
 
         {user ? (
-          <div className="flex items-center gap-3 pl-3 border-l border-border">
-            <div className="text-right">
-              <p className="text-primary text-xs font-medium leading-tight">{user.name}</p>
+          <div className="flex items-center gap-2 sm:gap-3 sm:pl-3 sm:border-l sm:border-border">
+            <div className="hidden md:block text-right">
+              <p className="text-primary text-xs font-medium leading-tight truncate max-w-[140px]">
+                {user.name}
+              </p>
               <p className="text-secondary text-[10px] uppercase tracking-wider leading-tight">
                 {user.role}
               </p>
