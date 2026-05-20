@@ -1,0 +1,36 @@
+# Repo-root .dockerignore — applied when Docker build context is the workspace root
+# (Backend Dockerfile via Render; future Frontend Dockerfile via docker-compose).
+
+# Node artifacts at any depth
+node_modules
+**/node_modules
+dist
+**/dist
+
+# Git / CI / IDE metadata
+.git
+.github
+.husky
+.vscode
+.idea
+
+# Env files (always inject via the platform, never bake into images)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs and OS junk
+*.log
+**/.DS_Store
+**/Thumbs.db
+
+# Local-only configs that don't need to ship in the image
+docker-compose.yml
+render.yaml
+vercel.json
+**/vercel.json
+*.md
+LICENSE

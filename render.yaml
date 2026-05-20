@@ -14,8 +14,8 @@ services:
   - type: web
     name: leadsrack-api
     runtime: docker
-    rootDir: .
     dockerfilePath: ./Backend/Dockerfile
+    dockerContext: .
     plan: free
     region: oregon
     healthCheckPath: /api/health
