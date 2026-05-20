@@ -5,18 +5,19 @@ import {
   getActivities,
   getContacts,
 } from '../../api/dashboard';
+import type { PeriodKey } from '../../types/dashboard';
 
 export const dashboardKeys = {
-  overview: ['dashboard', 'overview'] as const,
+  overview: (period: PeriodKey) => ['dashboard', 'overview', period] as const,
   notifications: ['notifications'] as const,
   activities: ['activities'] as const,
   contacts: ['contacts'] as const,
 };
 
-export function useDashboardOverview() {
+export function useDashboardOverview(period: PeriodKey) {
   return useQuery({
-    queryKey: dashboardKeys.overview,
-    queryFn: getDashboardOverview,
+    queryKey: dashboardKeys.overview(period),
+    queryFn: () => getDashboardOverview(period),
   });
 }
 

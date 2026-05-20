@@ -11,22 +11,15 @@ import {
 import { Notification } from './models/Notification.js';
 import { Activity } from './models/Activity.js';
 import { Contact } from './models/Contact.js';
-import { DashboardKpi } from './models/DashboardKpi.js';
-import { ChartSeries } from './models/ChartSeries.js';
-import { TrafficAggregate } from './models/TrafficAggregate.js';
 import { logger } from './lib/logger.js';
 import {
   NOTIFICATIONS,
   ACTIVITIES,
   CONTACTS,
-  KPI_METRICS,
-  USER_CHART,
-  TRAFFIC_BY_WEBSITE,
-  TRAFFIC_BY_DEVICE,
-  TRAFFIC_BY_LOCATION,
-  MARKETING_MONTHLY,
   relativeDate,
 } from './data/dashboardSeed.js';
+
+const HOUR_MS = 60 * 60 * 1000;
 
 const FIRST_NAMES = [
   'Aarav', 'Vivaan', 'Aaditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna',
@@ -39,6 +32,30 @@ function pick<T>(arr: readonly T[]): T {
   const v = arr[idx];
   if (v === undefined) throw new Error('pick from empty array');
   return v;
+}
+
+// Spread `createdAt` across the past ~12 months, weighted toward recent:
+//   40% in last 30 days, 30% in 30-90 days, 20% in 90-180 days, 10% in 180-365 days.
+// Ensures the dashboard's monthly / trend charts have visual shape on a fresh seed.
+function randomPastDate(): Date {
+  const r = Math.random();
+  const daysAgo =
+    r < 0.4
+      ? Math.random() * 30
+      : r < 0.7
+        ? 30 + Math.random() * 60
+        : r < 0.9
+          ? 90 + Math.random() * 90
+          : 180 + Math.random() * 185;
+  const d = new Date();
+  d.setDate(d.getDate() - Math.floor(daysAgo));
+  d.setHours(
+    Math.floor(Math.random() * 24),
+    Math.floor(Math.random() * 60),
+    Math.floor(Math.random() * 60),
+    0,
+  );
+  return d;
 }
 
 interface UserSpec {
@@ -89,16 +106,45 @@ async function seedUsersAndLeads(): Promise<void> {
   const aaditya = aadityaResult.user;
   const usersCreated = [adminResult, salesResult, aadityaResult].filter((r) => r.created).length;
 
+  // Opt-in override: `FORCE_RESEED=1 pnpm seed` always drops the leads collection
+  // and reseeds from scratch with the date-spread distribution. Useful for refreshing
+  // a dev DB whose leads happen to be bunched in one or two months.
+  const forceReseed = process.env.FORCE_RESEED === '1' || process.env.FORCE_RESEED === 'true';
+
   const leadCount = await Lead.countDocuments();
-  if (leadCount > 0) {
+  if (leadCount > 0 && !forceReseed) {
+    // Detect the pre-spread state: all existing leads have near-identical
+    // createdAt (within an hour). That's the original seed shape — drop and
+    // re-seed with date-spread so the dashboard's trend charts show shape.
+    // Otherwise (spread > 1h) treat the existing data as intentional and skip.
+    const [span] = await Lead.aggregate<{ min: Date; max: Date }>([
+      { $group: { _id: null, min: { $min: '$createdAt' }, max: { $max: '$createdAt' } } },
+      { $project: { _id: 0, min: 1, max: 1 } },
+    ]);
+    const spreadMs = span ? span.max.getTime() - span.min.getTime() : 0;
+    if (spreadMs > HOUR_MS) {
+      logger.info(
+        { usersCreated, existingLeads: leadCount, spreadHours: Math.round(spreadMs / HOUR_MS) },
+        'users ensured; leads already exist and are date-spread (skipped lead seed; set FORCE_RESEED=1 to override)',
+      );
+      return;
+    }
     logger.info(
       { usersCreated, existingLeads: leadCount },
-      'users ensured; leads already exist (skipped lead seed)',
+      'users ensured; existing leads collapsed to one timestamp — re-seeding with date spread',
     );
-    return;
+    await Lead.deleteMany({});
+  } else if (leadCount > 0 && forceReseed) {
+    logger.info(
+      { usersCreated, existingLeads: leadCount },
+      'FORCE_RESEED=1 set — dropping existing leads and re-seeding with date spread',
+    );
+    await Lead.deleteMany({});
   }
 
   // Distribute 25 leads across all three users so the Team page has variety.
+  // Each lead's createdAt is spread across the past 12 months (see randomPastDate)
+  // so the dashboard's monthly and trend charts have meaningful shape.
   const leads = Array.from({ length: 25 }, () => {
     const first = pick(FIRST_NAMES);
     const last = pick(LAST_NAMES);
@@ -106,12 +152,15 @@ async function seedUsersAndLeads(): Promise<void> {
     const source: LeadSource = pick(LEAD_SOURCES);
     const r = Math.random();
     const createdBy = r < 0.4 ? sales._id : r < 0.75 ? aaditya._id : admin._id;
+    const createdAt = randomPastDate();
     return {
       name: `${first} ${last}`,
       email: `${first}.${last}@example.com`.toLowerCase(),
       status,
       source,
       createdBy,
+      createdAt,
+      updatedAt: createdAt,
     };
   });
   await Lead.insertMany(leads);
@@ -134,14 +183,13 @@ async function seedUsersAndLeads(): Promise<void> {
 }
 
 async function seedDashboard(): Promise<void> {
-  // Reference data: drop + reinsert every run. Predictable, idempotent across re-runs.
+  // Reference data for the RightDrawer (Notifications / Activities / Contacts).
+  // The main dashboard widgets are now derived from the Lead collection by the
+  // services/dashboard.ts aggregation — no static KPI / chart / traffic seed.
   await Promise.all([
     Notification.deleteMany({}),
     Activity.deleteMany({}),
     Contact.deleteMany({}),
-    DashboardKpi.deleteMany({}),
-    ChartSeries.deleteMany({}),
-    TrafficAggregate.deleteMany({}),
   ]);
 
   // Resolve emails → User ObjectIds for relations.
@@ -184,31 +232,13 @@ async function seedDashboard(): Promise<void> {
     }),
   );
 
-  await DashboardKpi.insertMany(KPI_METRICS.map((k, i) => ({ ...k, order: i })));
-
-  await ChartSeries.create({
-    chartKey: USER_CHART.chartKey,
-    xAxis: USER_CHART.xAxis,
-    series: USER_CHART.series,
-  });
-
-  await TrafficAggregate.insertMany([
-    { kind: 'website', rows: TRAFFIC_BY_WEBSITE },
-    { kind: 'device', rows: TRAFFIC_BY_DEVICE },
-    { kind: 'location', rows: TRAFFIC_BY_LOCATION },
-    { kind: 'marketing', rows: MARKETING_MONTHLY },
-  ]);
-
   logger.info(
     {
       notifications: NOTIFICATIONS.length,
       activities: ACTIVITIES.length,
       contacts: CONTACTS.length,
-      kpis: KPI_METRICS.length,
-      chartSeries: 1,
-      trafficAggregates: 4,
     },
-    'dashboard seed complete',
+    'right-drawer seed complete (dashboard widgets are derived from leads)',
   );
 }
 

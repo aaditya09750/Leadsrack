@@ -79,39 +79,39 @@ Use any of these to log in at <https://leadsrack.vercel.app/login>:
 
 ## Tech stack
 
-| Layer     | Tech                  | Version                           | Purpose                                                   |
-| --------- | --------------------- | --------------------------------- | --------------------------------------------------------- |
-| Frontend  | React                 | 19.1.x                            | UI rendering and component model                          |
-| Frontend  | Vite                  | 6.x                               | Dev server and production build                           |
-| Frontend  | TypeScript            | 5.8.x                             | Strict typing across the SPA                              |
-| Frontend  | Tailwind CSS          | 3.4.x                             | Utility-first styling with CSS-var tokens for theme       |
-| Frontend  | React Router          | 7.x                               | Client-side routing with nested layouts + route guards    |
-| Frontend  | TanStack Query        | 5.x                               | Server-state caching + invalidation                       |
-| Frontend  | Zustand               | 5.x                               | Local-state stores (`authStore`, `themeStore`, `uiStore`) |
-| Frontend  | React Hook Form + Zod | 7.x + 4.x                         | Form state + schema validation                            |
-| Frontend  | ECharts (react)       | 6.x                               | Dashboard charts (line / bar / donut)                     |
-| Frontend  | Framer Motion         | 12.x                              | Drawer animations                                         |
-| Frontend  | Axios                 | 1.x                               | HTTP client with bearer interceptor                       |
-| Frontend  | Sonner                | 2.x                               | Toast notifications                                       |
-| Backend   | Node.js               | 22+                               | Runtime                                                   |
-| Backend   | Express               | 5.x                               | HTTP server                                               |
-| Backend   | TypeScript            | 5.9.x                             | Strict typing in the API                                  |
-| Backend   | Mongoose              | 8.x                               | MongoDB ODM                                               |
-| Backend   | Zod                   | 3.x                               | Env + request validation                                  |
-| Backend   | bcryptjs              | 2.x                               | Password hashing (pure JS for Docker portability)         |
-| Backend   | jsonwebtoken          | 9.x                               | HS256 JWT signing / verifying                             |
-| Backend   | Helmet                | 8.x                               | Security headers                                          |
-| Backend   | compression           | 1.x                               | gzip / deflate responses                                  |
-| Backend   | express-rate-limit    | 7.x                               | Per-IP rate limiting                                      |
-| Backend   | pino + pino-http      | 9.x + 10.x                        | Structured logging with redaction                         |
-| Backend   | @json2csv/node        | 7.x                               | CSV export via AsyncParser                                |
-| Database  | MongoDB Atlas         | 7.x (managed)                     | `leadsrackDB`                                             |
-| Tooling   | pnpm                  | 10.x                              | Package manager (per-app lockfiles)                       |
-| Tooling   | Husky + lint-staged   | 9.x + 16.x                        | Pre-commit / commit-msg / pre-push hooks                  |
-| Tooling   | Commitlint            | 19.x                              | Conventional Commits enforcement                          |
-| Tooling   | ESLint 9 + Prettier   | flat config + 3.x                 | Lint + format                                             |
-| Container | Docker (multi-stage)  | node:22-alpine, nginx:1.27-alpine | `web`, `api`, `mongo` services                            |
-| CI        | GitHub Actions        | —                                 | Lint + typecheck + build per workspace                    |
+| Layer     | Tech                  | Version                               | Purpose                                                   |
+| --------- | --------------------- | ------------------------------------- | --------------------------------------------------------- |
+| Frontend  | React                 | 19.1.x                                | UI rendering and component model                          |
+| Frontend  | Vite                  | 6.x                                   | Dev server and production build                           |
+| Frontend  | TypeScript            | 5.8.x                                 | Strict typing across the SPA                              |
+| Frontend  | Tailwind CSS          | 3.4.x                                 | Utility-first styling with CSS-var tokens for theme       |
+| Frontend  | React Router          | 7.x                                   | Client-side routing with nested layouts + route guards    |
+| Frontend  | TanStack Query        | 5.x                                   | Server-state caching + invalidation                       |
+| Frontend  | Zustand               | 5.x                                   | Local-state stores (`authStore`, `themeStore`, `uiStore`) |
+| Frontend  | React Hook Form + Zod | 7.x + 4.x                             | Form state + schema validation                            |
+| Frontend  | ECharts (react)       | 6.x                                   | Dashboard charts (line / bar / donut)                     |
+| Frontend  | Framer Motion         | 12.x                                  | Drawer animations                                         |
+| Frontend  | Axios                 | 1.x                                   | HTTP client with bearer interceptor                       |
+| Frontend  | Sonner                | 2.x                                   | Toast notifications                                       |
+| Backend   | Node.js               | 22+                                   | Runtime                                                   |
+| Backend   | Express               | 5.x                                   | HTTP server                                               |
+| Backend   | TypeScript            | 5.9.x                                 | Strict typing in the API                                  |
+| Backend   | Mongoose              | 8.x                                   | MongoDB ODM                                               |
+| Backend   | Zod                   | 3.x                                   | Env + request validation                                  |
+| Backend   | bcryptjs              | 2.x                                   | Password hashing (pure JS for Docker portability)         |
+| Backend   | jsonwebtoken          | 9.x                                   | HS256 JWT signing / verifying                             |
+| Backend   | Helmet                | 8.x                                   | Security headers                                          |
+| Backend   | compression           | 1.x                                   | gzip / deflate responses                                  |
+| Backend   | express-rate-limit    | 7.x                                   | Per-IP rate limiting                                      |
+| Backend   | pino + pino-http      | 9.x + 10.x                            | Structured logging with redaction                         |
+| Backend   | @json2csv/node        | 7.x                                   | CSV export via AsyncParser                                |
+| Database  | MongoDB Atlas         | 7.x (managed)                         | `leadsrackDB`                                             |
+| Tooling   | pnpm                  | 10.30.0 (pinned via `packageManager`) | Package manager — pnpm workspaces, single root lockfile   |
+| Tooling   | Husky + lint-staged   | 9.x + 16.x                            | Pre-commit / commit-msg / pre-push hooks                  |
+| Tooling   | Commitlint            | 19.x                                  | Conventional Commits enforcement                          |
+| Tooling   | ESLint 9 + Prettier   | flat config + 3.x                     | Lint + format                                             |
+| Container | Docker (multi-stage)  | node:22-alpine, nginx:1.27-alpine     | `web`, `api`, `mongo` services                            |
+| CI        | GitHub Actions        | —                                     | Lint + typecheck + build per workspace                    |
 
 ## Architecture at a glance
 
@@ -158,21 +158,17 @@ URLs:
 ### Option B — Two terminals (no Docker)
 
 ```bash
-# Repo root: install dev tooling (husky, lint-staged, commitlint, prettier)
+# Repo root: one install handles both apps (pnpm workspaces, single root lockfile)
 pnpm install
 
 # Backend (terminal 1)
-cd Backend
-pnpm install
-cp .env.example .env       # fill MONGODB_URI + JWT_SECRET (>= 32 chars)
-pnpm seed                  # idempotent: 3 users + 25 leads + dashboard data
-pnpm dev                   # http://localhost:4000
+cp Backend/.env.example Backend/.env       # fill MONGODB_URI + JWT_SECRET (>= 32 chars)
+pnpm --filter ./Backend seed               # idempotent: 3 users + 25 leads + dashboard data
+pnpm --filter ./Backend dev                # http://localhost:4000
 
 # Frontend (terminal 2)
-cd Frontend
-pnpm install
-cp .env.example .env       # VITE_API_URL=http://localhost:4000/api
-pnpm dev                   # http://localhost:3000
+cp Frontend/.env.example Frontend/.env     # VITE_API_URL=http://localhost:4000/api
+pnpm --filter ./Frontend dev               # http://localhost:3000
 ```
 
 ### Seeded credentials
@@ -309,21 +305,26 @@ Leadsrack/
 ├─ docs/
 │  ├─ API.md              Full endpoint reference + curl examples
 │  ├─ SETUP.md            Atlas + Render + Vercel walkthrough
-│  └─ ADRs/               Architecture Decision Records (0001..0005)
+│  └─ ADRs/               Architecture Decision Records (0001..0006; 0001 superseded by 0006)
 ├─ .github/
 │  ├─ ISSUE_TEMPLATE/
 │  ├─ workflows/ci.yml
 │  └─ PULL_REQUEST_TEMPLATE.md
 ├─ .husky/                pre-commit, commit-msg, pre-push
 ├─ docker-compose.yml
-├─ render.yaml            Render Blueprint (api service IaC)
+├─ render.yaml            Render Blueprint (api service IaC, Docker runtime)
+├─ .dockerignore          Repo-root ignore for workspace-context Docker builds
+├─ pnpm-workspace.yaml    Workspace manifest: Frontend + Backend
+├─ pnpm-lock.yaml         Single root lockfile (no per-app lockfiles)
 ├─ AGENTS.md              AI-agent path map (compat with Claude/Cursor/Copilot/Windsurf)
 ├─ ARCHITECTURE.md
 ├─ CONTRIBUTING.md
 ├─ CODE_OF_CONDUCT.md
 ├─ SECURITY.md
 ├─ LICENSE
-├─ package.json           Root: husky + commitlint + lint-staged + prettier
+├─ package.json           Root: packageManager pin (pnpm@10.30.0), dev tooling
+│                         (husky + commitlint + lint-staged + prettier), and
+│                         pnpm.packageExtensions (injects zod as @hookform/resolvers peer)
 └─ README.md              This file
 ```
 
@@ -398,7 +399,7 @@ Production is split across **Render (API)**, **Vercel (web)**, and **MongoDB Atl
 ## Roadmap
 
 - **Refresh tokens + httpOnly cookies** to remove the XSS-exposed `localStorage` JWT ([ADR 0005](docs/ADRs/0005-token-in-localstorage.md)).
-- **Shared `packages/shared`** for Zod schemas + inferred types to eliminate the Backend↔Frontend type mirror ([ADR 0001](docs/ADRs/0001-no-monorepo-tooling.md)).
+- **Shared `packages/shared`** for Zod schemas + inferred types to eliminate the Backend↔Frontend type mirror — workspaces are in place (see [ADR 0006](docs/ADRs/0006-pnpm-workspaces.md)); the shared package itself is the next step.
 - **Tests** — Vitest in both workspaces; smoke tests for auth + leads CRUD + RBAC paths.
 - **Sentry + OpenTelemetry** hooks at the error handler and pino transport.
 - **CSV export → background job** (BullMQ + Redis) for unbounded exports.

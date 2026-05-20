@@ -19,21 +19,17 @@ End-to-end walkthrough for getting Leadsrack running locally and deployed to pro
 ### Option A — Two terminals (no Docker)
 
 ```bash
-# Repo root: install dev tooling (husky, lint-staged, commitlint, prettier)
+# Repo root: one install handles both apps (pnpm workspaces, single root lockfile)
 pnpm install
 
 # Backend (terminal 1)
-cd Backend
-pnpm install
-cp .env.example .env       # fill MONGODB_URI + JWT_SECRET
-pnpm seed                  # idempotent: 3 users + 25 leads + dashboard data
-pnpm dev                   # http://localhost:4000
+cp Backend/.env.example Backend/.env       # fill MONGODB_URI + JWT_SECRET
+pnpm --filter ./Backend seed               # idempotent: 3 users + 25 leads + dashboard data
+pnpm --filter ./Backend dev                # http://localhost:4000
 
 # Frontend (terminal 2)
-cd Frontend
-pnpm install
-cp .env.example .env       # VITE_API_URL=http://localhost:4000/api
-pnpm dev                   # http://localhost:3000
+cp Frontend/.env.example Frontend/.env     # VITE_API_URL=http://localhost:4000/api
+pnpm --filter ./Frontend dev               # http://localhost:3000
 ```
 
 ### Option B — Docker Compose
@@ -208,14 +204,18 @@ Commitlint enforces a 100-char limit on commit-message headers. Shorten the titl
 
 ### Pre-push fails on `tsc` errors I can't see locally
 
-Ensure both workspaces have `node_modules`:
+Ensure the workspace is fully installed (single root install handles both apps):
 
 ```bash
-cd Backend && pnpm install
-cd ../Frontend && pnpm install
+pnpm install
 ```
 
-The pre-push hook runs `pnpm lint && pnpm typecheck && pnpm build` in each — missing deps will tank the typecheck step.
+The pre-push hook runs `pnpm lint && pnpm typecheck && pnpm build` in each workspace — missing deps will tank the typecheck step. If the hook still fails after a fresh install, blow away the local lockfile state and reinstall:
+
+```bash
+rm -rf node_modules Frontend/node_modules Backend/node_modules
+pnpm install
+```
 
 ### Vercel build fails — `VITE_API_URL is required`
 

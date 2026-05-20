@@ -261,7 +261,7 @@ In production `autoIndex: false` is set on Mongoose — these are not auto-synce
 
 ## Known limitations
 
-- **Type drift** between Backend Zod schemas (the source of truth) and Frontend interfaces ([Frontend/src/types/](Frontend/src/types/)). Mitigated by CI lint+typecheck on both sides. Future improvement: introduce `packages/shared` — see [ADR 0001](docs/ADRs/0001-no-monorepo-tooling.md).
+- **Type drift** between Backend Zod schemas (the source of truth) and Frontend interfaces ([Frontend/src/types/](Frontend/src/types/)). Mitigated by CI lint+typecheck on both sides. pnpm workspaces are in place (see [ADR 0006](docs/ADRs/0006-pnpm-workspaces.md)); next step is to add a `packages/shared` workspace for the schemas.
 - **Token in localStorage** is XSS-exposed. Trade-off documented in [ADR 0005](docs/ADRs/0005-token-in-localstorage.md); CSP and httpOnly-cookie migration in the roadmap.
 - **No refresh tokens**. The access token simply expires after `JWT_EXPIRES_IN`; the user re-logs in.
 - **CSV export is array-based** (`Lead.find().lean()` → `AsyncParser.parse(rows)`). Bounded by available heap. Mitigation: switch to `.cursor()` + stream Transform for unbounded exports; gate beyond N rows with a job queue.

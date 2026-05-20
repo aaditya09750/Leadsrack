@@ -1,17 +1,23 @@
 import ReactECharts from 'echarts-for-react';
+import { Tags } from 'lucide-react';
 import { Card } from '../ui/Card';
+import { ChartEmpty } from '../feedback/ChartEmpty';
 import { accentHex } from '../../lib/colors';
 import { useThemeStore } from '../../store/themeStore';
 import { TRAFFIC_BY_DEVICE } from '../../data/dashboardData';
 import { useDashboardOverview } from '../../features/dashboard/useDashboard';
+import { usePeriodParam } from '../../features/dashboard/usePeriodParam';
+import { PERIOD_LABELS } from '../../types/dashboard';
 
 export const TrafficByDevice = () => {
   const theme = useThemeStore((s) => s.theme);
   const isDark = theme === 'dark';
   const axisColor = isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(28, 28, 28, 0.55)';
 
-  const { data } = useDashboardOverview();
+  const [period] = usePeriodParam();
+  const { data } = useDashboardOverview(period);
   const rows = data?.trafficByDevice ?? TRAFFIC_BY_DEVICE;
+  const hasData = rows.some((r) => r.value > 0);
 
   const option = {
     backgroundColor: 'transparent',
@@ -61,9 +67,17 @@ export const TrafficByDevice = () => {
 
   return (
     <Card className="bg-surface h-[340px] flex flex-col">
-      <h3 className="text-primary text-sm font-semibold mb-4">Traffic by Device</h3>
+      <h3 className="text-primary text-sm font-semibold mb-4">Leads by Source</h3>
       <div className="flex-1">
-        <ReactECharts option={option} style={{ height: '100%', width: '100%' }} notMerge />
+        {hasData ? (
+          <ReactECharts option={option} style={{ height: '100%', width: '100%' }} notMerge />
+        ) : (
+          <ChartEmpty
+            icon={<Tags size={32} strokeWidth={1.25} />}
+            message={`No leads from any source for ${PERIOD_LABELS[period]}.`}
+            hint="Capture leads from Website, Instagram, or Referral to see the source mix."
+          />
+        )}
       </div>
     </Card>
   );

@@ -9,38 +9,51 @@ reads root-level `AGENTS.md`. Symlinking `CLAUDE.md → AGENTS.md` (or vice vers
 
 ```text
 Leadsrack/
-├─ Frontend/   React 19 + Vite 6 + TS + Tailwind 3. Own pnpm install, own lockfile.
-├─ Backend/    Express 5 + TS + Mongoose 8. Own pnpm install, own lockfile.
-├─ docs/       API.md, SETUP.md, ADRs/
-├─ .github/    workflows (CI), templates
-├─ .husky/     pre-commit, commit-msg, pre-push
-├─ render.yaml Render Blueprint for the API service
-└─ root-only   tooling (husky, commitlint, lint-staged, prettier). NO workspaces.
+├─ Frontend/             React 19 + Vite 6 + TS + Tailwind 3 (workspace package).
+├─ Backend/              Express 5 + TS + Mongoose 8 (workspace package).
+├─ docs/                 API.md, SETUP.md, ADRs/
+├─ .github/              workflows (CI), templates
+├─ .husky/               pre-commit, commit-msg, pre-push
+├─ render.yaml           Render Blueprint for the API service (Docker runtime)
+├─ pnpm-workspace.yaml   workspace manifest: Frontend + Backend
+└─ root                  packageManager pin, dev tooling (husky, commitlint,
+                         lint-staged, prettier), pnpm.packageExtensions
+                         (injects zod as @hookform/resolvers peer).
 ```
 
-Two independent apps. The root `package.json` ships dev tooling only — there is no
-workspace orchestrator. Run `pnpm install` separately in `Frontend/` and `Backend/`.
+pnpm workspaces. **One** `pnpm-lock.yaml` at the repo root. `pnpm install` from the root
+installs both apps. See [ADR 0006](docs/ADRs/0006-pnpm-workspaces.md) for the why.
 
 ## Commands
 
 ```bash
-# From repo root (one-time tooling install)
-pnpm install            # husky + commitlint + lint-staged + prettier
-
-# From Frontend/
+# From repo root — one install handles both apps
 pnpm install
-pnpm dev                # vite, http://localhost:3000
-pnpm lint && pnpm typecheck && pnpm build
 
-# From Backend/
-pnpm install
-pnpm dev                # tsx watch, http://localhost:4000
-pnpm seed               # idempotent: 3 users + 25 leads + dashboard data
-pnpm lint && pnpm typecheck && pnpm build && pnpm start
+# Frontend
+pnpm --filter ./Frontend dev          # vite, http://localhost:3000
+pnpm --filter ./Frontend lint
+pnpm --filter ./Frontend typecheck
+pnpm --filter ./Frontend build
+
+# Backend
+pnpm --filter ./Backend dev           # tsx watch, http://localhost:4000
+pnpm --filter ./Backend seed          # idempotent: 3 users + 25 leads + dashboard data
+pnpm --filter ./Backend lint
+pnpm --filter ./Backend typecheck
+pnpm --filter ./Backend build
+pnpm --filter ./Backend start
+
+# Run a script in every workspace
+pnpm -r lint
+pnpm -r build
 
 # Docker (from repo root)
 docker compose up --build
 ```
+
+`cd Frontend && pnpm dev` and `cd Backend && pnpm dev` still work — pnpm resolves to the
+workspace root regardless of cwd.
 
 ## Where things live
 
@@ -61,8 +74,9 @@ docker compose up --build
 | Web API client                           | `Frontend/src/lib/api.ts` (axios + bearer interceptor) + `Frontend/src/api/*`                                    |
 | Web types mirroring backend Zod          | `Frontend/src/types/{api,dashboard,team}.ts`                                                                     |
 | Design tokens                            | `Frontend/tailwind.config.js` + CSS vars in `Frontend/src/index.css`                                             |
-| Architecture decisions                   | `docs/ADRs/0001..0005-*.md`                                                                                      |
-| Deployment IaC                           | `render.yaml` (root) + `Frontend/vercel.json`                                                                    |
+| Architecture decisions                   | `docs/ADRs/0001..0006-*.md`                                                                                      |
+| Deployment IaC                           | `render.yaml` (root, Docker runtime) + `Frontend/vercel.json` + `Backend/Dockerfile` (workspace-aware)           |
+| Workspace manifest                       | `pnpm-workspace.yaml` (root) + single `pnpm-lock.yaml` (root)                                                    |
 
 ## Conventions
 
@@ -101,9 +115,9 @@ docker compose up --build
 ## Verification checklist (before claiming "done")
 
 ```bash
-# Both workspaces must pass:
-cd Backend  && pnpm typecheck && pnpm lint && pnpm build
-cd Frontend && pnpm typecheck && pnpm lint && pnpm build
+# Both workspaces must pass (from repo root):
+pnpm --filter ./Backend  typecheck && pnpm --filter ./Backend  lint && pnpm --filter ./Backend  build
+pnpm --filter ./Frontend typecheck && pnpm --filter ./Frontend lint && pnpm --filter ./Frontend build
 ```
 
 If you touched the API surface:

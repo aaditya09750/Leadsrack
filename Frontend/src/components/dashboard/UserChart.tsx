@@ -1,21 +1,32 @@
 import { useState } from 'react';
 import ReactECharts from 'echarts-for-react';
+import { LineChart } from 'lucide-react';
 import { Card } from '../ui/Card';
+import { ChartEmpty } from '../feedback/ChartEmpty';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import { USER_CHART } from '../../data/dashboardData';
 import { useDashboardOverview } from '../../features/dashboard/useDashboard';
-
-const TABS = ['Total Users', 'Total Projects', 'Operating Status'] as const;
-type Tab = (typeof TABS)[number];
+import { usePeriodParam } from '../../features/dashboard/usePeriodParam';
+import {
+  USER_CHART_PIVOT_KEYS,
+  USER_CHART_PIVOT_LABELS,
+  PERIOD_LABELS,
+  type UserChartPivotKey,
+} from '../../types/dashboard';
 
 export const UserChart = () => {
   const theme = useThemeStore((s) => s.theme);
   const isDark = theme === 'dark';
-  const [activeTab, setActiveTab] = useState<Tab>('Total Users');
+  const [activeTab, setActiveTab] = useState<UserChartPivotKey>('totalLeads');
 
-  const { data } = useDashboardOverview();
-  const chart = data?.userChart ?? USER_CHART;
+  const [period] = usePeriodParam();
+  const { data } = useDashboardOverview(period);
+  const pivots = data?.userChart.pivots ?? USER_CHART.pivots;
+  const chart = pivots[activeTab];
+  const isConversion = activeTab === 'conversion';
+  const hasData =
+    chart.xAxis.length > 0 && chart.series.some((s) => s.data.some((v) => v > 0));
 
   const axisColor = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(28, 28, 28, 0.55)';
   const splitColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(28, 28, 28, 0.06)';
@@ -33,13 +44,20 @@ export const UserChart = () => {
       },
       padding: [8, 12],
       borderRadius: 8,
-      formatter: (params: Array<{ name: string; value: number }>) => {
-        const head = params[0];
-        if (!head) return '';
+      formatter: (params: Array<{ name: string; value: number; seriesName: string }>) => {
+        if (params.length === 0) return '';
         const labelColor = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(28,28,28,0.6)';
+        const fmt = (v: number) =>
+          isConversion ? `${v.toFixed(1)}%` : v.toLocaleString();
+        const rows = params
+          .map(
+            (p) =>
+              `<div style="display:flex;justify-content:space-between;gap:12px"><span style="color:${labelColor}">${p.seriesName}</span><span style="font-weight:600">${fmt(p.value)}</span></div>`,
+          )
+          .join('');
         return `<div style="font-family: Inter">
-          <div style="font-size: 10px; color: ${labelColor}; margin-bottom: 4px">${head.name}</div>
-          <div style="font-weight: 700">${head.value.toLocaleString()}</div>
+          <div style="font-size: 10px; color: ${labelColor}; margin-bottom: 4px">${params[0]?.name ?? ''}</div>
+          ${rows}
         </div>`;
       },
     },
@@ -56,7 +74,11 @@ export const UserChart = () => {
       axisLine: { show: false },
       axisTick: { show: false },
       splitLine: { lineStyle: { color: splitColor } },
-      axisLabel: { color: axisColor, fontSize: 12, formatter: '{value}M' },
+      axisLabel: {
+        color: axisColor,
+        fontSize: 12,
+        formatter: isConversion ? '{value}%' : '{value}',
+      },
     },
     series: chart.series.map((s) => ({
       name: s.name,
@@ -99,13 +121,13 @@ export const UserChart = () => {
     <Card className="bg-surface md:h-[340px] flex flex-col">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between xl:gap-4 mb-5 xl:mb-8">
         <div className="flex items-center gap-5 xl:gap-6 overflow-x-auto scrollbar-hidden -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible">
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab;
+          {USER_CHART_PIVOT_KEYS.map((key) => {
+            const isActive = activeTab === key;
             return (
               <button
-                key={tab}
+                key={key}
                 type="button"
-                onClick={() => setActiveTab(tab)}
+                onClick={() => setActiveTab(key)}
                 className={cn(
                   'shrink-0 whitespace-nowrap text-sm pb-1 border-b-2 transition-colors',
                   isActive
@@ -113,7 +135,7 @@ export const UserChart = () => {
                     : 'text-secondary border-transparent hover:text-primary',
                 )}
               >
-                {tab}
+                {USER_CHART_PIVOT_LABELS[key]}
               </button>
             );
           })}
@@ -128,7 +150,15 @@ export const UserChart = () => {
         </div>
       </div>
       <div className="h-[220px] md:h-auto md:flex-1">
-        <ReactECharts option={option} style={{ height: '100%', width: '100%' }} notMerge />
+        {hasData ? (
+          <ReactECharts option={option} style={{ height: '100%', width: '100%' }} notMerge />
+        ) : (
+          <ChartEmpty
+            icon={<LineChart size={32} strokeWidth={1.25} />}
+            message={`No ${USER_CHART_PIVOT_LABELS[activeTab].toLowerCase()} data for ${PERIOD_LABELS[period]}.`}
+            hint="Try a wider period or add a new lead to see the trend."
+          />
+        )}
       </div>
     </Card>
   );

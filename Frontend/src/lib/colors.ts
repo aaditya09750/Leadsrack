@@ -24,11 +24,21 @@ export const ACCENT_TEXT: Record<AccentKey, string> = {
   brand: 'text-accent-brand',
 };
 
+// Keys correspond to the `bgKey` value the API ships for each KPI tile.
+// The current dashboard ships lead-derived KPI keys (totalLeads/newLeads/
+// qualifiedLeads/conversionRate) but the backend re-uses the legacy
+// `views/visits/newUsers/activeUsers` strings as the `bgKey` field so the
+// existing Tailwind safelist stays unchanged. Both alias sets map to the
+// same four background classes.
 export const STAT_BG: Record<string, string> = {
   views: 'bg-stat-views',
   visits: 'bg-stat-visits',
   newUsers: 'bg-stat-newUsers',
   activeUsers: 'bg-stat-activeUsers',
+  totalLeads: 'bg-stat-views',
+  newLeads: 'bg-stat-visits',
+  qualifiedLeads: 'bg-stat-newUsers',
+  conversionRate: 'bg-stat-activeUsers',
 };
 
 // Raw hex values — for libraries (ECharts, canvas, etc.) that don't speak Tailwind classes.

@@ -1,6 +1,6 @@
 # ADR 0001 — No monorepo workspaces; two independent apps
 
-- **Status**: Accepted
+- **Status**: Superseded by [ADR 0006](0006-pnpm-workspaces.md) (2026-05-20)
 - **Date**: 2026-05-19
 
 ## Context
@@ -49,3 +49,14 @@ manually kept in sync with the Backend's Zod schemas in
 If the project grows beyond two entities or onboards a third app (mobile, admin SPA),
 introduce `packages/shared` and migrate. The type-drift cost becomes unacceptable past about
 ~5 entities or any moderate API surface area.
+
+## Superseded — 2026-05-20
+
+Reversed by [ADR 0006](0006-pnpm-workspaces.md). The "per-app installs" stance survived for
+exactly one onboarding pass before the duplicate-install friction outweighed the perceived
+churn cost of adopting workspaces. The minimal-workspace migration (just `pnpm-workspace.yaml`
+
+- a single root lockfile, no `apps/`/`packages/` rename, no Turborepo) preserved every path
+  this ADR was trying to protect, so the original "zero churn" benefit was kept intact.
+  Shared types in `packages/shared` remain a future step; the workspace is now in place to
+  host it when needed.

@@ -138,103 +138,112 @@ export const CONTACTS = [
 ] as const;
 
 // ---------- KPI metrics (StatsGrid) ----------
+// Offline-fallback values shown for the brief pre-fetch flash. Matches the
+// lead-derived KPI shape that the backend emits (keys + Tailwind bgKey aliases).
+import type { TrafficMarketingRow, UserChartData, UserChartPivots } from '../types/dashboard';
+
 export const KPI_METRICS = [
   {
-    key: 'views',
-    title: 'Views',
-    value: '721K',
-    change: '+11.01%',
+    key: 'totalLeads',
+    title: 'Total Leads',
+    value: '0',
+    change: '',
     positive: true,
-    bgKey: 'views',
+    bgKey: 'totalLeads',
   },
   {
-    key: 'visits',
-    title: 'Visits',
-    value: '367K',
-    change: '-0.03%',
-    positive: false,
-    bgKey: 'visits',
+    key: 'newLeads',
+    title: 'New',
+    value: '0',
+    change: '',
+    positive: true,
+    bgKey: 'newLeads',
   },
   {
-    key: 'newUsers',
-    title: 'New Users',
-    value: '1,156',
-    change: '+15.03%',
+    key: 'qualifiedLeads',
+    title: 'Qualified',
+    value: '0',
+    change: '',
     positive: true,
-    bgKey: 'newUsers',
+    bgKey: 'qualifiedLeads',
   },
   {
-    key: 'activeUsers',
-    title: 'Active Users',
-    value: '239K',
-    change: '+6.08%',
+    key: 'conversionRate',
+    title: 'Conversion Rate',
+    value: '0.0%',
+    change: '',
     positive: true,
-    bgKey: 'activeUsers',
+    bgKey: 'conversionRate',
   },
 ] as const;
 
 // ---------- User chart (UserChart) ----------
-export const USER_CHART = {
-  xAxis: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+const EMPTY_USER_CHART: UserChartData = {
+  xAxis: [],
   series: [
-    {
-      name: 'Current Week',
-      data: [12, 18, 14, 22, 16, 24, 20],
-      color: '#C6C7F8',
-      dashed: false,
-    },
-    {
-      name: 'Previous Week',
-      data: [8, 12, 10, 15, 12, 18, 14],
-      color: '#A8C5DA',
-      dashed: true,
-    },
+    { name: 'Current', data: [], color: '#C6C7F8', dashed: false },
+    { name: 'Previous', data: [], color: '#A8C5DA', dashed: true },
   ],
-} as const;
+};
+
+const EMPTY_PIVOTS: UserChartPivots = {
+  totalLeads: EMPTY_USER_CHART,
+  qualified: EMPTY_USER_CHART,
+  conversion: EMPTY_USER_CHART,
+};
+
+export const USER_CHART: UserChartData & { pivots: UserChartPivots } = {
+  ...EMPTY_USER_CHART,
+  pivots: EMPTY_PIVOTS,
+};
 
 // ---------- Traffic by website (TrafficByWebsite) ----------
 export const TRAFFIC_BY_WEBSITE = [
-  { name: 'Google', value: 80, active: false },
-  { name: 'YouTube', value: 60, active: false },
-  { name: 'Instagram', value: 90, active: true },
-  { name: 'Pinterest', value: 50, active: false },
-  { name: 'Facebook', value: 70, active: false },
-  { name: 'Twitter', value: 40, active: false },
-  { name: 'Tumblr', value: 30, active: false },
+  { name: 'New', value: 0, active: false },
+  { name: 'Contacted', value: 0, active: false },
+  { name: 'Qualified', value: 0, active: false },
+  { name: 'Lost', value: 0, active: false },
 ] as const;
 
 // ---------- Traffic by device (TrafficByDevice) ----------
 // `color` is a token suffix: bg-accent-<color>
 export const TRAFFIC_BY_DEVICE = [
-  { label: 'Linux', value: 40, color: 'indigo' },
-  { label: 'Mac', value: 65, color: 'green' },
-  { label: 'iOS', value: 50, color: 'purple' },
-  { label: 'Windows', value: 85, color: 'sky' },
-  { label: 'Android', value: 30, color: 'blue' },
-  { label: 'Other', value: 65, color: 'teal' },
+  { label: 'Website', value: 0, color: 'sky' },
+  { label: 'Instagram', value: 0, color: 'purple' },
+  { label: 'Referral', value: 0, color: 'green' },
 ] as const;
 
 // ---------- Traffic by location (TrafficByLocation) ----------
 // Donut segments derive from `percentage`. Total should sum to 100.
-export const TRAFFIC_BY_LOCATION = [
-  { country: 'United States', percentage: 38.6, color: 'purple' },
-  { country: 'Canada', percentage: 22.5, color: 'green' },
-  { country: 'Mexico', percentage: 30.8, color: 'indigo' },
-  { country: 'Other', percentage: 8.1, color: 'sky' },
-] as const;
+export const TRAFFIC_BY_LOCATION: ReadonlyArray<{
+  country: string;
+  percentage: number;
+  color: string;
+}> = [];
 
 // ---------- Marketing monthly (MarketingMonthly) ----------
-export const MARKETING_MONTHLY = [
-  { month: 'Jan', value: 40, color: 'indigo' },
-  { month: 'Feb', value: 65, color: 'green' },
-  { month: 'Mar', value: 50, color: 'purple' },
-  { month: 'Apr', value: 85, color: 'sky' },
-  { month: 'May', value: 30, color: 'blue' },
-  { month: 'Jun', value: 65, color: 'teal' },
-  { month: 'Jul', value: 40, color: 'indigo' },
-  { month: 'Aug', value: 65, color: 'green' },
-  { month: 'Sep', value: 50, color: 'purple' },
-  { month: 'Oct', value: 85, color: 'sky' },
-  { month: 'Nov', value: 30, color: 'blue' },
-  { month: 'Dec', value: 65, color: 'teal' },
-] as const;
+const MONTHLY_COLOR_CYCLE = ['indigo', 'green', 'purple', 'sky', 'blue', 'teal'] as const;
+const MONTH_NAMES = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+// 12 zero-bars labelled with the trailing 12 calendar months ending "now".
+// Computed at module-load so the placeholder axis matches what the API will
+// return on the first fetch.
+function rollingMonthlyFallback(): TrafficMarketingRow[] {
+  const now = new Date();
+  const out: TrafficMarketingRow[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({
+      month: MONTH_NAMES[d.getMonth()] ?? '',
+      value: 0,
+      color: MONTHLY_COLOR_CYCLE[(11 - i) % MONTHLY_COLOR_CYCLE.length] ?? 'indigo',
+      count: 0,
+    });
+  }
+  return out;
+}
+
+export const MARKETING_MONTHLY: TrafficMarketingRow[] = rollingMonthlyFallback();

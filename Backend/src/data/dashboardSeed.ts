@@ -1,6 +1,7 @@
-// Source of truth for the static dashboard surface seeded into Mongo.
-// Mirrors the shape of `Frontend/src/data/dashboardData.ts` but lives independently
-// on the backend so there is no cross-app import.
+// Static reference data for the RightDrawer (Notifications / Activities / Contacts).
+//
+// The main dashboard widgets (KPIs, charts, traffic breakdowns) are NOT seeded —
+// they are derived live from the Lead collection by services/dashboard.ts.
 //
 // Relations:
 //   - ACTIVITIES.actorEmail     → seeder resolves to User._id
@@ -29,28 +30,6 @@ export interface ActivitySeed extends RelativeOffset {
 export type ContactSeed =
   | { name: string; linkedUserEmail: string; avatar: string }
   | { name: string; email: string; avatar: string };
-
-export interface KpiSeed {
-  key: string;
-  title: string;
-  value: string;
-  change: string;
-  positive: boolean;
-  bgKey: string;
-}
-
-export interface ChartSeriesSeed {
-  name: string;
-  data: number[];
-  color: string;
-  dashed: boolean;
-}
-
-export interface UserChartSeed {
-  chartKey: string;
-  xAxis: string[];
-  series: ChartSeriesSeed[];
-}
 
 // ---------- Notifications ----------
 export const NOTIFICATIONS: NotificationSeed[] = [
@@ -83,66 +62,6 @@ export const CONTACTS: ContactSeed[] = [
   { name: 'Orlando Diggs', email: 'orlando.d@example.com', avatar: 'https://i.pravatar.cc/150?u=orlando' },
   { name: 'Kate Morrison', email: 'kate.m@example.com', avatar: 'https://i.pravatar.cc/150?u=kate' },
   { name: 'Koray Okumus', email: 'koray.o@example.com', avatar: 'https://i.pravatar.cc/150?u=koray' },
-];
-
-// ---------- KPIs ----------
-export const KPI_METRICS: KpiSeed[] = [
-  { key: 'views', title: 'Views', value: '721K', change: '+11.01%', positive: true, bgKey: 'views' },
-  { key: 'visits', title: 'Visits', value: '367K', change: '-0.03%', positive: false, bgKey: 'visits' },
-  { key: 'newUsers', title: 'New Users', value: '1,156', change: '+15.03%', positive: true, bgKey: 'newUsers' },
-  { key: 'activeUsers', title: 'Active Users', value: '239K', change: '+6.08%', positive: true, bgKey: 'activeUsers' },
-];
-
-// ---------- User chart ----------
-export const USER_CHART: UserChartSeed = {
-  chartKey: 'userChart',
-  xAxis: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-  series: [
-    { name: 'Current Week', data: [12, 18, 14, 22, 16, 24, 20], color: '#C6C7F8', dashed: false },
-    { name: 'Previous Week', data: [8, 12, 10, 15, 12, 18, 14], color: '#A8C5DA', dashed: true },
-  ],
-};
-
-// ---------- Traffic aggregates ----------
-export const TRAFFIC_BY_WEBSITE = [
-  { name: 'Google', value: 80, active: false },
-  { name: 'YouTube', value: 60, active: false },
-  { name: 'Instagram', value: 90, active: true },
-  { name: 'Pinterest', value: 50, active: false },
-  { name: 'Facebook', value: 70, active: false },
-  { name: 'Twitter', value: 40, active: false },
-  { name: 'Tumblr', value: 30, active: false },
-];
-
-export const TRAFFIC_BY_DEVICE = [
-  { label: 'Linux', value: 40, color: 'indigo' },
-  { label: 'Mac', value: 65, color: 'green' },
-  { label: 'iOS', value: 50, color: 'purple' },
-  { label: 'Windows', value: 85, color: 'sky' },
-  { label: 'Android', value: 30, color: 'blue' },
-  { label: 'Other', value: 65, color: 'teal' },
-];
-
-export const TRAFFIC_BY_LOCATION = [
-  { country: 'United States', percentage: 38.6, color: 'purple' },
-  { country: 'Canada', percentage: 22.5, color: 'green' },
-  { country: 'Mexico', percentage: 30.8, color: 'indigo' },
-  { country: 'Other', percentage: 8.1, color: 'sky' },
-];
-
-export const MARKETING_MONTHLY = [
-  { month: 'Jan', value: 40, color: 'indigo' },
-  { month: 'Feb', value: 65, color: 'green' },
-  { month: 'Mar', value: 50, color: 'purple' },
-  { month: 'Apr', value: 85, color: 'sky' },
-  { month: 'May', value: 30, color: 'blue' },
-  { month: 'Jun', value: 65, color: 'teal' },
-  { month: 'Jul', value: 40, color: 'indigo' },
-  { month: 'Aug', value: 65, color: 'green' },
-  { month: 'Sep', value: 50, color: 'purple' },
-  { month: 'Oct', value: 85, color: 'sky' },
-  { month: 'Nov', value: 30, color: 'blue' },
-  { month: 'Dec', value: 65, color: 'teal' },
 ];
 
 export function relativeDate(input: RelativeOffset): Date {

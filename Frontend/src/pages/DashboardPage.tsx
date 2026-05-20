@@ -4,14 +4,16 @@ import { TrafficByWebsite } from '../components/dashboard/TrafficByWebsite';
 import { TrafficByDevice } from '../components/dashboard/TrafficByDevice';
 import { TrafficByLocation } from '../components/dashboard/TrafficByLocation';
 import { MarketingMonthly } from '../components/dashboard/MarketingMonthly';
+import { PeriodFilter } from '../features/dashboard/PeriodFilter';
 
 export const DashboardPage = () => {
   return (
     <>
-      <div className="px-4 md:px-7 pt-5 md:pt-7">
+      <div className="px-4 md:px-7 pt-5 md:pt-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="font-display text-primary text-lg md:text-2xl font-semibold leading-tight">
           Leadsrack Smart Leads System
         </h1>
+        <PeriodFilter />
       </div>
 
       <StatsGrid />

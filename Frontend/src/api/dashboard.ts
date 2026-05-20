@@ -4,14 +4,17 @@ import type {
   NotificationDoc,
   ActivityDoc,
   ContactDoc,
+  PeriodKey,
 } from '../types/dashboard';
 
 interface Envelope<T> {
   data: T;
 }
 
-export async function getDashboardOverview(): Promise<DashboardOverview> {
-  const res = await api.get<Envelope<DashboardOverview>>('/dashboard/overview');
+export async function getDashboardOverview(period: PeriodKey): Promise<DashboardOverview> {
+  const res = await api.get<Envelope<DashboardOverview>>('/dashboard/overview', {
+    params: { period },
+  });
   return res.data.data;
 }
 
