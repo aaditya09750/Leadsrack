@@ -29,7 +29,9 @@ RUN corepack enable
 
 COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
 COPY --from=build /app/Backend/package.json ./Backend/
-RUN pnpm install --frozen-lockfile --filter ./Backend... --prod
+# --ignore-scripts: skip the root `prepare: husky` lifecycle hook (husky is a devDep,
+# only relevant for local git hooks, would crash here under --prod).
+RUN pnpm install --frozen-lockfile --filter ./Backend... --prod --ignore-scripts
 
 COPY --from=build /app/Backend/dist ./Backend/dist
 
