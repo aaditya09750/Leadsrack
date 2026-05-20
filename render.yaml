@@ -14,13 +14,19 @@ services:
   - type: web
     name: leadsrack-api
     runtime: node
-    rootDir: Backend
+    rootDir: .
     plan: free
     region: oregon
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
-    startCommand: node dist/server.js
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --filter ./Backend... && pnpm --filter ./Backend build
+    startCommand: pnpm --filter ./Backend start
     healthCheckPath: /api/health
     autoDeploy: true
+    buildFilter:
+      paths:
+        - Backend/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
     envVars:
       - key: NODE_ENV
         value: production
