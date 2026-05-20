@@ -1,20 +1,41 @@
 # syntax=docker/dockerfile:1.7
+# Build context must be the repo root (Render: rootDir: . + dockerfilePath: ./Backend/Dockerfile;
+# docker-compose: context: . + dockerfile: ./Backend/Dockerfile) so that the workspace lockfile
+# and pnpm-workspace.yaml are visible.
+
 FROM node:22-alpine AS build
 WORKDIR /app
 RUN corepack enable
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
-COPY tsconfig.json ./
-COPY src ./src
-RUN pnpm build && pnpm prune --prod
 
+# Workspace manifests first for best layer caching
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY Backend/package.json ./Backend/
+
+# Install Backend's workspace slice (includes dev deps for TypeScript build)
+RUN pnpm install --frozen-lockfile --filter ./Backend...
+
+# Backend source
+COPY Backend/tsconfig.json ./Backend/
+COPY Backend/src ./Backend/src
+
+# Compile TS → dist/
+RUN pnpm --filter ./Backend build
+
+# ---- Runtime: re-install prod deps only, copy dist ----
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+RUN corepack enable
+
+COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=build /app/Backend/package.json ./Backend/
+RUN pnpm install --frozen-lockfile --filter ./Backend... --prod
+
+COPY --from=build /app/Backend/dist ./Backend/dist
+
 RUN addgroup -S app && adduser -S app -G app && chown -R app:app /app
 USER app
-COPY --from=build --chown=app:app /app/node_modules ./node_modules
-COPY --from=build --chown=app:app /app/dist ./dist
-COPY --from=build --chown=app:app /app/package.json ./
+
+WORKDIR /app/Backend
 EXPOSE 4000
 CMD ["node", "dist/server.js"]

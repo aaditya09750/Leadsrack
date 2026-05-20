@@ -13,12 +13,11 @@
 services:
   - type: web
     name: leadsrack-api
-    runtime: node
+    runtime: docker
     rootDir: .
+    dockerfilePath: ./Backend/Dockerfile
     plan: free
     region: oregon
-    buildCommand: corepack enable && pnpm install --frozen-lockfile --filter ./Backend... && pnpm --filter ./Backend build
-    startCommand: pnpm --filter ./Backend start
     healthCheckPath: /api/health
     autoDeploy: true
     buildFilter:
